@@ -13,27 +13,54 @@ Liste des pages:
 
 Le serveur execute les programmes des differents en parallèle.
 
-### Répartition des taches
-- Design du site (CCS, Bootstrap?) **Evann**
+# Répartition des taches
+- Design du site (CSS, Bootstrap) **Evann**
+- Structure du site (HTML)
 - Creation du moteur graphique du jeu (HTML/JS) **Evann**
 - Game design **Evann Alexis**
-- Creation système de jeu (résultat, déroulement du jeu, queue)
+- Creation système de jeu:
+    Resultat
+    Déroulement
+    Queue
 - Creation du language de programation EDA (design du language et création d'un parser) **Dorian**
 - Création d'une data base, de profile et de stats **Alexis**
 - Création d'un système de modération **Dorian**
 - Journal **Alexis**
-- Résumé **Tout le monde**
 - Doc Technique **Dorian**
 - PDF **Alexis**
-- Vidéo **Tout le monde**
+- Vidéo:
+    Montage
+    Script
+    Organisation (où, avec quoi?)
 - Deployer le projet **Dorian**
 
-**EDA#**
+1) Design du site
+...
+
+2) Structure du site
+...
+
+3) Creation moteur graphique
+...
+
+4) Game design
+...
+
+5) Système de jeu
+...
+
+6) EDA#
 - move(up/down/right/left)
 - attack(normal/special??)
 - wait(1) (en seconde)
-- from 0 to 10 (i) (for i in range(0, 10)) > on peut rien mettre entre from to  pour i=0
+- from 0 to 10 (i) (for i in range(0, 10)) > on peut rien mettre entre from to pour i=0
 - même while et if que python
 - endfor endwhile endif
 - var = 0,True/False pas de string et float
 - QUE des elements de prog qui sert à quelques choses pour le jeu
+- marche avec retour à la ligne/indentation
+
+7) Création d'une database
+...
+
+8) Système de modération
