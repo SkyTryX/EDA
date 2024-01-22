@@ -27,3 +27,13 @@ Le serveur execute les programmes des differents en parallèle.
 - PDF **Alexis**
 - Vidéo **Tout le monde**
 - Deployer le projet **Dorian**
+
+**EDA#**
+- move(up/down/right/left)
+- attack(normal/special??)
+- wait(1) (en seconde)
+- from 0 to 10 (i) (for i in range(0, 10)) > on peut rien mettre entre from to  pour i=0
+- même while et if que python
+- endfor endwhile endif
+- var = 0,True/False pas de string et float
+- QUE des elements de prog qui sert à quelques choses pour le jeu
