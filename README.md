@@ -1,5 +1,5 @@
 # trophee-nsi
-## Jeu style Pyrate eb mode versus
+## Jeu style Pyrate en mode versus
 
 Liste des pages: 
 - Page Main
@@ -7,15 +7,9 @@ Liste des pages:
 - Page de register/Login
 - Page de profile (stats, modif password, mail, pseudo, suppr compte etc...)
 - Page modération (pour bannir les gens qui utilisent des scripts...)
-- Page de selection du mode de jeu
-- Page de jeu
-- page de resultat de la game
-
-En ligne Flask
-
-Bot programmable en un language de prog fait maison (EDA#)
-
-Rendu graphique minimalliste (Canvas HTML)
+- Page de selection du mode de jeu (Course,1v1, 2v2, tournois?)
+- Page de jeu (avec moteur graphique Canvas et champ d'entrée du code EDA#)
+- page de resultat de la game (stats, etc...)
 
 Le serveur execute les programmes des differents en parallèle.
 
