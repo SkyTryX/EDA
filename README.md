@@ -1,19 +1,5 @@
 # trophee-nsi
-## Jeu style Pyrate en mode versus
-
-Liste des pages: 
-- Page Main
-- Presentation équipe et des dossiers techniques etc...
-- Page de register/Login
-- Page de profile (stats, modif password, mail, pseudo, suppr compte etc...)
-- Page modération (pour bannir les gens qui utilisent des scripts...)
-- Page de selection du mode de jeu (Course,1v1, 2v2, tournois?)
-- Page de jeu (avec moteur graphique Canvas et champ d'entrée du code EDA#)
-- page de resultat de la game (stats, etc...)
-
-Le serveur execute les programmes des differents en parallèle.
-
-# Répartition des taches
+## Répartition des taches
 - Design du site (CSS, Bootstrap) **Evann**
 - Structure du site (HTML)
 - Creation du moteur graphique du jeu (HTML/JS) **Evann**
@@ -35,10 +21,17 @@ Le serveur execute les programmes des differents en parallèle.
 - Deployer le projet **Dorian**
 
 1) Design du site
-...
+Couleure principale/Secondaire , fond d'écran , police  ecriture etc...
 
 2) Structure du site
-...
+- Page Main (Titre ,lien presentation, login/register, coordonnées etc...)
+- Page Presentation équipe et des dossiers techniques etc... (lien vidéo, doc technique, doc pdf, résumé)
+- Page de register/Login (mail, ign, password, confirm password // mail/ign password mdp oublié)
+- Page de profile (stats (win, kills, elo, map favori), modif password, mail, pseudo, suppr compte etc...)
+- Page modération (menu avec tout les joueurs, pouvoir les bannir, suppr leur compte, changer leur donnée)
+- Page de selection du mode de jeu (Course,1v1, 2v2, tournois?)
+- Page de jeu (avec moteur graphique Canvas et champ d'entrée du code EDA#)
+- page de resultat de la game (stats, etc...)
 
 3) Creation moteur graphique
 ...
