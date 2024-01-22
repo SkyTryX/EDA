@@ -4,7 +4,7 @@ app = Flask(__name__)
 app.secret_key = b'6b1c2d979b55431bdc13c133bc026c80311b606aad7f3987b6638970bff1a5e1'
 
 @app.errorhandler(404)
-def notfound():
+def notfound(error):
     return render_template("notfound.html")
 
 @app.route("/")
@@ -24,23 +24,23 @@ def modmode():
     return render_template("modmode.html")
 
 @app.route("/selector")
-def index():
+def selector():
     return render_template("selector.html")
 
 @app.route("/game")
-def index():
+def game():
     return render_template("game.html")
 
 @app.route("/result")
-def index():
+def result():
     return render_template("result.html")
 
 @app.route("/register")
-def index():
+def register():
     return render_template("register.html")
 
 @app.route("/login")
-def index():
+def login():
     return render_template("login.html")
 
 
