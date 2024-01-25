@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Acceuil</title>
+</head>
+<body>
+    <B>Project : EDA#</B>
+    <br>
+    <br>
+    {% if session["modo"] %}
+    <a href="/moderation">Moderation</a>
+    {% elif not session["user"] %}
+    <a href="/connection">Se connecter</a> <br>
+    <a href="/inscription">S'inscrire</a>
+    {% else %}
+    <a href="/jouer">Jouer</a><br>
+    <a href="/profil">Profil</a>
+    {% endif %}
+    <br><br>
+    <a href="/presentation">Qu'est-ce qu'EDA# ?</a>
+</body>
+</html>
