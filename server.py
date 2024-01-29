@@ -1,6 +1,8 @@
 from flask import Flask, render_template, request, url_for, session
 import json
 from os.path import join, dirname, realpath
+import csv
+from render.py import load_map_from_csv
 
 app = Flask(__name__)
 app.config['DATA_DIR'] = join(dirname(realpath(__file__)),'static')
@@ -70,7 +72,8 @@ def course():
 
 @app.route("/combat")
 def combat():
-    return render_template('combat.html'""", ligne1, ligne2...""")
+    map_data = load_map_from_csv('map.csv')
+    return render_template('combat.html', map=map_data)
 
 @app.route("/result_game")
 def result_game():
