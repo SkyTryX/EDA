@@ -70,7 +70,7 @@ def course():
 
 @app.route("/combat")
 def combat():
-    return render_template('combat.html')
+    return render_template('combat.html'""", ligne1, ligne2...""")
 
 @app.route("/result_game")
 def result_game():
