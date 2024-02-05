@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Inscription</title>
+    <link rel="stylesheet" href="/static/styles.css">
+</head>
+<body>
+    <div class="container mt-5">
+        <h1>Inscription</h1>
+        <form action="/inscript" method="POST">
+            <div class="mb-3">
+                <label for="nom" class="form-label">Nom :</label>
+                <input type="text" class="form-control" id="nom" name="nom">
+            </div>
+            <div class="mb-3">
+                <label for="mdp" class="form-label">Mot de passe :</label>
+                <input type="password" class="form-control" id="mdp" name="mdp">
+            </div>
+            <button type="submit" class="btn">Valider</button>
+        </form>
+        <a href="/index" class="mt-3">Retour</a>
+    </div>
+</body>
+</html>
+
