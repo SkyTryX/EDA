@@ -1,7 +1,7 @@
-# trophee-nsi
+# Trophées NSI
 ## Répartition des taches
 - Design du site (CSS, Bootstrap) **Evann**
-- Structure du site (HTML)
+- Structure du site (HTML) **Alexis**
 - Creation du moteur graphique du jeu (HTML/JS) **Evann**
 - Game design **Evann Alexis**
 - Creation système de jeu:
@@ -21,7 +21,9 @@
 - Deployer le projet **Dorian**
 
 1) Design du site
-Couleure principale/Secondaire , fond d'écran , police  ecriture etc...
+Couleure principale/secondaire: Style console/vert blanc
+fond d'écran : Noir
+police ecriture : Vielle police de console
 
 2) Structure du site
 - Page Main (Titre ,lien presentation, login/register, coordonnées etc...)
@@ -34,26 +36,37 @@ Couleure principale/Secondaire , fond d'écran , police  ecriture etc...
 - page de resultat de la game (stats, etc...)
 
 3) Creation moteur graphique
-...
+En Ascii avec couleur
 
 4) Game design
-...
+**Global**
+Chaque instruction s'execute 1 à 3 fois d'affilés, en même quantitée pour chaque equipe.
+
+**1v1**
+But: Destruire le robot adverse
+Map: Desert (Plat), Forêt(Labyrinthique), Ville (Entre les deux)
 
 5) Système de jeu
 ...
 
 6) EDA#
-- move(up/down/right/left)
-- attack(normal/special??)
-- wait(1) (en seconde)
-- from 0 to 10 (i) (for i in range(0, 10)) > on peut rien mettre entre from to pour i=0
-- même while et if que python
-- endfor endwhile endif
-- var = 0,True/False pas de string et float
-- QUE des elements de prog qui sert à quelques choses pour le jeu
-- marche avec retour à la ligne/indentation
+- move(up/down/right/left);
+- attack(corpsàcorps/distance, up/down/right/left);
+- wait();
+- take();
+- repeat(int){INSTR}
 
 7) Création d'une database
-...
+**donnee**
+mail PRIMARY_KEY
+pseudo
+mdp
+admin
+
+**stat**
+pseudo PRIMARY_KEY FOREIGN_KEY
+win
+elo
 
 8) Système de modération
+...

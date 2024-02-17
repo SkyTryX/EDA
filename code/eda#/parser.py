@@ -1,37 +1,82 @@
 expressions:dict[str, str]= {
-    "right()":"right",
-    "left()":"left",
-    "jump()":"jump",
+    "move(":{"move":[]},
+    "attack(":{"attack":[]},
+    "wait()":"wait",
+    "take()":"take"
 }
 
+def represents_int(s):
+    try: 
+        int(s)
+    except ValueError:
+        return False
+    return True
+
 def compiler(txt:str) -> list:
-    res = []
-    repeating = False
-    temp = ""
-    for c in txt:
-        temp+= c
-        # Fin d'instrution
-        if c == ";":
-            temp = ""
-        # Enregistrer instruction
-        if expressions.get(temp) != None:
-            res.append(expressions.get(temp))
-        # Enregistrer boucle
-        elif temp == "repeat(":
-            res.append({"repeat":0})
-            repeating = True
-        # Gérer les boucles
-        elif repeating:
-            try:
-                res[len(res)-1]["repeat"] = res[len(res)-1]["repeat"]*10+int(c)
-            except ValueError:
-                if temp.endswith("){"):
-                    repeating = False
-                    temp = ""
-        # Fin de boucle
-        if c == "}":
-            res.append("endrepeat")
+    reading_input = False
+    res= []
+    for i in txt.split(";"):
+        temp = ""
+        index = 0
+        for c in i:
+            temp+= c
+            if reading_input:
+                if c == ",":
+                    index += 1
+                elif c == ")":
+                    reading_input = False
+                elif c != " ":
+                    if type(res[len(res)-1]) == dict:
+                        if len(res[len(res)-1][list(res[len(res)-1].keys())[0]]) == index:
+                            if represents_int(c):
+                                res[len(res)-1][list(res[len(res)-1].keys())[0]].append(int(c))
+                            else:
+                                res[len(res)-1][list(res[len(res)-1].keys())[0]].append(c)
+                        else:
+                            if represents_int(res[len(res)-1][list(res[len(res)-1].keys())[0]][index]):
+                                res[len(res)-1][list(res[len(res)-1].keys())[0]][index] = res[len(res)-1][list(res[len(res)-1].keys())[0]][index]*10+int(c)
+                            else:
+                                res[len(res)-1][list(res[len(res)-1].keys())[0]][index] += res[len(res)-1][list(res[len(res)-1].keys())[0]][index]
+            if expressions.get(temp) != None:
+                if temp == "move(":
+                    res.append({"move":[]})
+                elif temp == "attack(":
+                    res.append({"attack":[]})
+                elif temp == "wait()":
+                    res.append("wait")
+                elif temp == "take()":
+                    res.append("take"),
+                reading_input = True
     return res
 
-print(compiler("right();left();jump();"))
-print(compiler("repeat(5){right();}"))
+def repeater(txt:str) -> str:
+    reading_repeat= False
+    repeat_number = None
+    reading = True
+    res = ""
+    index = -1
+    for c in txt:
+        index += 1
+        if reading_repeat:
+            if c == ")":
+                reading_repeat = False
+            elif repeat_number == None:
+                repeat_number = int(c)
+            else:
+                repeat_number = repeat_number*10+int(c)
+        elif res.endswith("repeat"):
+            res = res.removesuffix("repeat")
+            reading = False
+            reading_repeat = True
+        elif c == "{":
+            start_index = index+1
+        elif c == "}":
+            repeating = ""
+            for i in range(start_index, index):
+                repeating+=txt[i]
+            for i in range(repeat_number):
+                res+=repeating
+            reading = True
+        elif reading:
+            res+= c
+    return res
