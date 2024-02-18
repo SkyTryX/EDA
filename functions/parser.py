@@ -12,7 +12,7 @@ def represents_int(s):
         return False
     return True
 
-def compiler(txt:str) -> list:
+def lexxer(txt:str) -> list:
     reading_input = False
     res= []
     for i in txt.split(";"):
@@ -38,6 +38,7 @@ def compiler(txt:str) -> list:
                             else:
                                 res[len(res)-1][list(res[len(res)-1].keys())[0]][index] += res[len(res)-1][list(res[len(res)-1].keys())[0]][index]
             if expressions.get(temp) != None:
+                # Je fais ça au lieu d'utiliser expression car sinon ca écrit dans la variable expressions
                 if temp == "move(":
                     res.append({"move":[]})
                 elif temp == "attack(":
@@ -49,7 +50,7 @@ def compiler(txt:str) -> list:
                 reading_input = True
     return res
 
-def repeater(txt:str) -> str:
+def unthreader(txt:str) -> str:
     reading_repeat= False
     repeat_number = None
     reading = True
@@ -80,3 +81,6 @@ def repeater(txt:str) -> str:
         elif reading:
             res+= c
     return res
+
+def eda_sharp(txt:str)->list:
+    return lexxer(unthreader(txt))
