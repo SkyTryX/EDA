@@ -1,8 +1,8 @@
-from flask import Flask, render_template, request, url_for, session
-import json
+from flask import Flask, render_template, request, session
 from os.path import join, dirname, realpath
-import csv
-from render.py import load_map_from_csv
+from random import *
+import sqlite3
+from render import load_map_from_csv
 
 app = Flask(__name__)
 app.config['DATA_DIR'] = join(dirname(realpath(__file__)),'static')
@@ -20,21 +20,23 @@ def index():
 
 @app.route("/connection")
 def connection():
-    return render_template('connection.html')
+    return render_template('connection.html', erreur = False)
     
 @app.route("/connect", methods=['POST'])
 def connect():
-    session["nom"]=request.form["nom"]
-    session["mdp"]=request.form["mdp"]
-    print(session["nom"])
-    print(session["mdp"])
-    #########################################################
-    if session["nom"] == "Alex" and session["mdp"] == 1:
-    #########################################################
-        session["user"] = True
-        return render_template('index.html')
-    else:
-        return render_template('connection.html')
+    con = sqlite3.connect(join(app.config['DATA_DIR'],'compte.db'))
+    cur = con.cursor()
+    try:
+        mail = cur.execute("SELECT pseudo FROM donnee where mail=?;",(request.form['mail'], )).fetchone()[0]
+        mdp = cur.execute("SELECT mdp FROM donnee where mail=?;",(request.form['mail'], )).fetchone()[0]
+        if mail == request.form['mail'] and mdp  ==  request.form['mdp']:
+            session['user'] = True
+            return render_template("index.html")
+        else:
+            return render_template("connection.html", erreur = True)
+    except : 
+        TypeError
+    return render_template("connection.html", erreur = True)
 
 @app.route("/inscription")
 def inscription():
@@ -42,8 +44,19 @@ def inscription():
 
 @app.route("/inscript", methods=['POST'])
 def inscript():
-    session["user"] = True
-    return render_template('index.html')
+    con = sqlite3.connect(join(app.config['DATA_DIR'],'compte.db'))
+    cur = con.cursor()
+    mail = cur.execute("SELECT mail FROM donnee where pseudo=?;",(request.form['mail'], )).fetchone()
+    pseudo = cur.execute("SELECT pseudo FROM donnee where pseudo=?;",(request.form['nom'], )).fetchone()
+    if mail == None and pseudo == None:
+        cur.execute("INSERT INTO donnee VALUES(?,?,?);",(request.form['mail'], request.form['nom'], request.form['mdp'],))
+        cur.execute("INSERT INTO stat VALUES(?,?,?);",(request.form['nom'], 0, "plastique",))
+        con.commit()
+        session["user"] = True
+        session['pseudo'] = request.form['nom']
+        return render_template("index.html")
+    else:   
+        return render_template("inscription.html", erreur = True)
 
 @app.route("/profil")
 def profil():

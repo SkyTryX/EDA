@@ -1,17 +1,24 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Document</title>
 </head>
+
 <body>
-    
+    {% if erreur %}
+    Pseudo ou mail déjà utilisé
+    {% endif %}
+
     <form action="/inscript" method="POST">
         Nom : <input type="text" name="nom"></br>
+        Mail : <input type="text" name="mail"></br>
         Mot de passe : <input type="password" name="mdp"><br>
         <input type="submit" value="Valider"><br>
-    <a href="/index">Retour</a>
+        <a href="/index">Retour</a>
 
 </body>
+
 </html>
