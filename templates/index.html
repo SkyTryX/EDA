@@ -13,7 +13,8 @@
     <br>
     {% if session["modo"] %}
     <a href="/moderation">Moderation</a>
-    {% elif session["uuid"] == None %}
+    {% endif %}
+    {% if session.get("uuid") == None %}
     <a href="/connection">Se connecter</a> <br>
     <a href="/inscription">S'inscrire</a>
     {% else %}

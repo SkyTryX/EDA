@@ -3,6 +3,7 @@ from os.path import join, dirname, realpath
 import sqlite3
 from functions.render import load_map_from_csv
 from uuid import uuid4
+from json import load, dump
 
 app = Flask(__name__)
 app.config['DATA_DIR'] = join(dirname(realpath(__file__)),'static')
@@ -71,6 +72,20 @@ def moderation():
 @app.route("/jouer")
 def jouer():
     return render_template('jouer.html')
+
+@app.route("/queue")
+def queue():
+    session["gamemode"] = "course"
+    if session["uuid"] != None:
+        with open(join(app.config['DATA_DIR'],"matches/queue.json"), "r") as file:
+            data = load(file)
+            if data[session["gamemode"]] == "None":
+                with open(join(app.config['DATA_DIR'],"matches/queue.json"), "w") as file:
+                    data[session["gamemode"]] = session["uuid"]
+                    dump(data, file)
+            else:
+                print("a")
+    return render_template("queue.html")
 
 @app.route("/course")
 def course():
