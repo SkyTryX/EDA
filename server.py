@@ -1,9 +1,10 @@
-from flask import Flask, render_template, request, session
+from flask import Flask, render_template, request, session, redirect
 from os.path import join, dirname, realpath
 import sqlite3
 from functions.render import load_map_from_csv
 from uuid import uuid4
 from json import load, dump
+from pathlib import Path
 
 app = Flask(__name__)
 app.config['DATA_DIR'] = join(dirname(realpath(__file__)),'static')
@@ -43,9 +44,9 @@ def inscript():
     mail = cur.execute("SELECT mail FROM donnee where pseudo=?;",(request.form['mail'], )).fetchone()
     pseudo = cur.execute("SELECT pseudo FROM donnee where pseudo=?;",(request.form['nom'], )).fetchone()
     if mail == None and pseudo == None:
-        uuid = uuid4()
-        cur.execute("INSERT INTO donnee VALUES(?,?,?,?);",(str(uuid), request.form['mail'], request.form['nom'], request.form['mdp']))
-        cur.execute("INSERT INTO stats VALUES(?,?,?);",(str(uuid), 0, 1400,))
+        uuid = str(uuid4())
+        cur.execute("INSERT INTO donnee VALUES(?,?,?,?);",(uuid, request.form['mail'], request.form['nom'], request.form['mdp']))
+        cur.execute("INSERT INTO stats VALUES(?,?,?);",(uuid, 0, 1400,))
         con.commit()
         session['uuid'] = uuid
         return render_template("index.html")
@@ -77,27 +78,48 @@ def jouer():
 def queue():
     session["gamemode"] = "course"
     if session["uuid"] != None:
-        with open(join(app.config['DATA_DIR'],"matches/queue.json"), "r") as file:
-            data = load(file)
+        with open(join(app.config['DATA_DIR'],"matches/queue.json"), "r") as file_read:
+            data = load(file_read)
+            print(data[session["gamemode"]][0], session["uuid"][0])
             if data[session["gamemode"]] == "None":
                 with open(join(app.config['DATA_DIR'],"matches/queue.json"), "w") as file:
                     data[session["gamemode"]] = session["uuid"]
                     dump(data, file)
+            elif data[session["gamemode"]][0] == session["uuid"][0]:
+                return redirect("/")
             else:
-                print("a")
+                with open(join(app.config['DATA_DIR'],"matches/queue.json"), "w") as file:
+                    other_player = data[session["gamemode"]]
+                    data[session["gamemode"]] = "None"
+                    dump(data, file)
+                matchuuid= str(uuid4())
+                with open(join(app.config['DATA_DIR'],f"matches/running/{matchuuid}.json"), "w") as file:
+                    session["match"] = matchuuid
+                    dump({"p1":session["uuid"],"p2":other_player,"map":"map","submission1":[], "submission2":[], "winner":None}, file)
     return render_template("queue.html")
 
 @app.route("/course")
 def course():
-    return render_template('course.html')
+    map_data = load_map_from_csv(join(app.config['DATA_DIR'],'maps/map.csv'))
+    return render_template('course.html', map=map_data)
 
 @app.route("/combat")
 def combat():
-    map_data = load_map_from_csv(join(app.config['DATA_DIR'], '/maps/map.csv'))
+    map_data = load_map_from_csv(join(app.config['DATA_DIR'],'maps/map.csv'))
     return render_template('combat.html', map=map_data)
 
 @app.route("/result_game")
 def result_game():
+    with open(join(app.config['DATA_DIR'],f"matches/running/{session["match"]}.json"), "w") as file:
+        data = load(file)
+        with open(join(app.config['DATA_DIR'],f"matches/logs/{session["match"]}.json"), "w") as file_w:
+            dump(data, file_w)
+    Path.unlink(join(app.config['DATA_DIR'],f"matches/running/{session["match"]}.json"))
     return render_template('result_game.html')
+
+@app.route("/api/queue")
+def return_queue():
+    return load(open(join(app.config['DATA_DIR'],"matches/queue.json"), "r"))
+
 
 app.run(host = '127.0.0.1', port='5000', debug=True)

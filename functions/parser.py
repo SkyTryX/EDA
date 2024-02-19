@@ -28,15 +28,9 @@ def lexxer(txt:str) -> list:
                 elif c != " ":
                     if type(res[len(res)-1]) == dict:
                         if len(res[len(res)-1][list(res[len(res)-1].keys())[0]]) == index:
-                            if represents_int(c):
-                                res[len(res)-1][list(res[len(res)-1].keys())[0]].append(int(c))
-                            else:
-                                res[len(res)-1][list(res[len(res)-1].keys())[0]].append(c)
+                            res[len(res)-1][list(res[len(res)-1].keys())[0]].append(c)
                         else:
-                            if represents_int(res[len(res)-1][list(res[len(res)-1].keys())[0]][index]):
-                                res[len(res)-1][list(res[len(res)-1].keys())[0]][index] = res[len(res)-1][list(res[len(res)-1].keys())[0]][index]*10+int(c)
-                            else:
-                                res[len(res)-1][list(res[len(res)-1].keys())[0]][index] += res[len(res)-1][list(res[len(res)-1].keys())[0]][index]
+                            res[len(res)-1][list(res[len(res)-1].keys())[0]][index] += c
             if expressions.get(temp) != None:
                 # Je fais ça au lieu d'utiliser expression car sinon ca écrit dans la variable expressions
                 if temp == "move(":
@@ -84,3 +78,6 @@ def unthreader(txt:str) -> str:
 
 def eda_sharp(txt:str)->list:
     return lexxer(unthreader(txt))
+
+print(lexxer(unthreader("move(up);attack(cac,down);repeat(2){wait();}take();")))
+[{'move': ['up']}, {'attack': ['cac', 'down']}, 'wait', 'wait', 'take']

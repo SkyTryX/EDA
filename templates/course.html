@@ -1,17 +1,27 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
-    <script src="/path/to/htmx.min.js"></script>
+    <title>Jeu</title>
 </head>
 
 <body>
-    <i>**Lancement du jeu**</i><br><br>
-    <br><br><br>
-    <a href="/result_game">Résultats du jeu</a> <br><br>
+    <h1>Jeu</h1>
+    <div>
+        {% for row in map %}
+        <div>
+            {% for cell in row %}
+            {% if cell == '1' %}
+            <div style="background-color: black; width: 20px; height: 20px; display: inline-block;"></div>
+            {% elif cell == '2' %}
+            <div style="background-color: yellow; width: 20px; height: 20px; display: inline-block;"></div>
+            {% elif cell == '0' %}
+            <div style="background-color: white; width: 20px; height: 20px; display: inline-block;"></div>
+            {% endif %}
+            {% endfor %}
+        </div>
+        {% endfor %}
+    </div>
 </body>
 
 </html>
