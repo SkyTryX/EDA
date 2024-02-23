@@ -2,6 +2,7 @@ from flask import Flask, render_template, request, session, redirect
 from os.path import join, dirname, realpath
 import sqlite3
 from functions.render import load_map_from_csv
+from functions.parser import eda_sharp
 from uuid import uuid4
 from json import load, dump
 from pathlib import Path
@@ -110,16 +111,21 @@ def combat():
 
 @app.route("/result_game")
 def result_game():
-    with open(join(app.config['DATA_DIR'],f"matches/running/{session["match"]}.json"), "w") as file:
+    match = session["match"]
+    with open(join(app.config['DATA_DIR'],f"matches/running/{match}.json"), "w") as file:
         data = load(file)
-        with open(join(app.config['DATA_DIR'],f"matches/logs/{session["match"]}.json"), "w") as file_w:
+        with open(join(app.config['DATA_DIR'],f"matches/logs/{match}.json"), "w") as file_w:
             dump(data, file_w)
-    Path.unlink(join(app.config['DATA_DIR'],f"matches/running/{session["match"]}.json"))
+    Path.unlink(join(app.config['DATA_DIR'],f"matches/running/{match}.json"))
     return render_template('result_game.html')
 
 @app.route("/api/queue")
 def return_queue():
     return load(open(join(app.config['DATA_DIR'],"matches/queue.json"), "r"))
+
+@app.route("/api/translator")
+def return_translated():
+    return eda_sharp(request.args.get("prog"))
 
 
 app.run(host = '127.0.0.1', port='5000', debug=True)

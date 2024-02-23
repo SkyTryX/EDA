@@ -1,3 +1,5 @@
+from sys import argv
+
 expressions:dict[str, str]= {
     "move(":{"move":[]},
     "attack(":{"attack":[]},
@@ -78,6 +80,3 @@ def unthreader(txt:str) -> str:
 
 def eda_sharp(txt:str)->list:
     return lexxer(unthreader(txt))
-
-print(lexxer(unthreader("move(up);attack(cac,down);repeat(2){wait();}take();")))
-[{'move': ['up']}, {'attack': ['cac', 'down']}, 'wait', 'wait', 'take']
