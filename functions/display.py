@@ -1,9 +1,20 @@
 import csv
 
 def load_map(map_csv):
-    with open(map_csv, 'r') as file:
-        reader = csv.reader(file)
-        data = [row for row in reader]
+    try:
+        with open(map_csv, 'r') as file:
+            reader = csv.reader(file)
+            data = [row for row in reader]
+    except FileNotFoundError:
+        print(f"Error: Map file '{map_csv}' not found.")
+        return None
+    except Exception as e:
+        print(f"Error: {e}")
+        return None
+
+    if not data:
+        print("Error: Map is empty.")
+        return None
 
     w = len(data[0])
     h = len(data)
@@ -21,6 +32,10 @@ def load_map(map_csv):
     return model
 
 def display(model):
+    if not model or not model['bots']:
+        print("Error: Map is empty or has no bots.")
+        return
+
     SYMB = {
         'wall': '*',
         'free': ' ',
@@ -39,7 +54,10 @@ def display(model):
         print("".join(line))
 
 def render(model):
-    display(model)
+    if model:
+        display(model)
+    else:
+        print("Error: Model is empty or has no bots.")
 
 model = load_map('map.csv')
 render(model)
