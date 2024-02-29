@@ -6,6 +6,7 @@ from functions.parser import eda_sharp
 from uuid import uuid4
 from json import load, dump
 from pathlib import Path
+from display import display
 
 app = Flask(__name__)
 app.config['DATA_DIR'] = join(dirname(realpath(__file__)),'static')
@@ -106,8 +107,8 @@ def course():
 
 @app.route("/combat")
 def combat():
-    map_data = load_map_from_csv(join(app.config['DATA_DIR'],'maps/map.csv'))
-    return render_template('combat.html', map=map_data)
+    map_ascii = display()
+    return render_template('combat.html', map=map_ascii)
 
 @app.route("/result_game")
 def result_game():
