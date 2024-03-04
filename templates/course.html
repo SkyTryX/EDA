@@ -8,21 +8,9 @@
 <body>
     <h1>Jeu</h1>
     <p id="count"></p>
-    <div>
-        {% for row in map %}
-        <div>
-            {% for cell in row %}
-            {% if cell == '1' %}
-            <div style="background-color: black; width: 20px; height: 20px; display: inline-block;"></div>
-            {% elif cell == '2' %}
-            <div style="background-color: yellow; width: 20px; height: 20px; display: inline-block;"></div>
-            {% elif cell == '0' %}
-            <div style="background-color: white; width: 20px; height: 20px; display: inline-block;"></div>
-            {% endif %}
-            {% endfor %}
-        </div>
-        {% endfor %}
-    </div>
+    <pre>
+        {{ img }}
+    </pre>
     Insert code here: <input type="text" name="prog" id="prog">
     <script src="{{url_for('static', filename = 'match_script.js')}}"></script>
 </body>
