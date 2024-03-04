@@ -85,9 +85,18 @@ def moderation():
 def jouer():
     return render_template('jouer.html')
 
+@app.route("/lancercourse")
+def lancercombat():
+    session["gamemode"] = "course"
+    return render_template('lancercourse.html')
+
+@app.route("/lancercombat")
+def lancercombat():
+    session["gamemode"] = "combat"
+    return render_template('lancercombat.html')
+
 @app.route("/queue")
 def queue():
-    session["gamemode"] = "course"
     if session["uuid"] != None:
         with open(join(app.config['DATA_DIR'],"matches/queue.json"), "r") as file_read:
             data = load(file_read)
