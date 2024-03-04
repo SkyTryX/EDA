@@ -79,10 +79,9 @@ def jouer():
 @app.route("/queue")
 def queue():
     session["gamemode"] = "course"
-    if session["uuid"] != None:
+    if session["uuid"] is not None:
         with open(join(app.config['DATA_DIR'],"matches/queue.json"), "r") as file_read:
             data = load(file_read)
-            print(data[session["gamemode"]][0], session["uuid"][0])
             if data[session["gamemode"]] == "None":
                 with open(join(app.config['DATA_DIR'],"matches/queue.json"), "w") as file:
                     data[session["gamemode"]] = session["uuid"]
@@ -94,11 +93,7 @@ def queue():
                     other_player = data[session["gamemode"]]
                     data[session["gamemode"]] = "None"
                     dump(data, file)
-                matchuuid= str(uuid4())
-                with open(join(app.config['DATA_DIR'],f"matches/running/{matchuuid}.json"), "w") as file:
-                    session["match"] = matchuuid
-                    dump({"p1":session["uuid"],"p2":other_player,"map":"map","submission1":[], "submission2":[], "winner":None}, file)
-    return render_template("queue.html")
+        return render_template("queue.html", gamemode=session["gamemode"])
 
 @app.route("/course")
 def course():
@@ -113,11 +108,21 @@ def combat():
 @app.route("/result_game")
 def result_game():
     match = session["match"]
-    with open(join(app.config['DATA_DIR'],f"matches/running/{match}.json"), "w") as file:
-        data = load(file)
-        with open(join(app.config['DATA_DIR'],f"matches/logs/{match}.json"), "w") as file_w:
-            dump(data, file_w)
-    Path.unlink(join(app.config['DATA_DIR'],f"matches/running/{match}.json"))
+    try:
+        with open(join(app.config['DATA_DIR'],f"matches/running/{match}.json"), "r") as file:
+            data = load(file)
+            with open(join(app.config['DATA_DIR'],f"matches/logs/{match}.json"), "w") as file_w:
+                dump(data, file_w)
+    except FileNotFoundError:
+        return "Error: Match file not found."
+    except Exception as e:
+        return f"Error: {e}"
+    try:
+        Path.unlink(join(app.config['DATA_DIR'],f"matches/running/{match}.json"))
+    except FileNotFoundError:
+        return "Error: Match file not found."
+    except Exception as e:
+        return f"Error: {e}"
     return render_template('result_game.html')
 
 @app.route("/api/queue")

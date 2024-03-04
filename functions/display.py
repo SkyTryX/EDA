@@ -1,12 +1,17 @@
 import csv
+import os
 
 def load_map(map_csv):
+
     try:
-        with open(map_csv, 'r') as file:
+        with open(os.path.abspath(map_csv), 'r', newline='') as file:
             reader = csv.reader(file)
-            data = [row for row in reader]
+            data = list(reader)
     except FileNotFoundError:
         print(f"Error: Map file '{map_csv}' not found.")
+        return None
+    except PermissionError:
+        print(f"Error: Map file '{map_csv}' cannot be accessed.")
         return None
     except Exception as e:
         print(f"Error: {e}")
@@ -31,26 +36,20 @@ def load_map(map_csv):
 
     return model
 
-def display(model):
+def display(model, symbols={"wall": "*", "free": " ", "bot": ["@", "#"]}):
     if not model or not model['bots']:
         print("Error: Map is empty or has no bots.")
         return
-
-    SYMB = {
-        'wall': '*',
-        'free': ' ',
-        'bot': ['@', '#']
-    }
 
     for y in range(model['h']):
         line = []
         for x in range(model['w']):
             if (x,y) in model['walls']:
-                line.append(SYMB['wall'])
+                line.append(symbols["wall"])
             elif (x,y) in model['bots']:
-                line.append(SYMB['bot'][model['bots'].index((x,y))])
+                line.append(symbols["bot"][model['bots'].index((x,y))])
             else:
-                line.append(SYMB['free'])
+                line.append(symbols["free"])
         print("".join(line))
 
 def render(model):
