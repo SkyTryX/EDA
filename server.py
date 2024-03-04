@@ -87,6 +87,13 @@ def jouer():
 
 @app.route("/queue")
 def queue():
+    """
+    Système de queue indépendante du niveau, ajoute l'uuid du joueur qui cherche une partie dans 'gamemode' si aucune uuid n'est
+    présente, si il y a une uuid ( et donc un joueur qui cherche ), lance un match avec 'other_player' avec l'uuid de l'autre joueur
+    et remet la case 'gamemode' vide
+    création de match : ajoute dans un json sous l'uuid 'matchuuid' le dictionnaire suivant :
+    {"p1":session["uuid"],"p2":other_player,"map":"map","submission1":[], "submission2":[], "winner":None}
+    """
     session["gamemode"] = request.args.get('gamemode')
     if session["uuid"] != None:
         with open(join(app.config['DATA_DIR'],"matches/queue.json"), "r") as file_read:
