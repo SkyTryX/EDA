@@ -119,13 +119,21 @@ def combat():
 
 @app.route("/result_game")
 def result_game():
+    con = sqlite3.connect(join(app.config['DATA_DIR'],'database/compte.db'))
+    cur = con.cursor()
     match = session["match"]
     with open(join(app.config['DATA_DIR'],f"matches/running/{match}.json"), "w") as file:
         data = load(file)
         with open(join(app.config['DATA_DIR'],f"matches/logs/{match}.json"), "w") as file_w:
             dump(data, file_w)
     Path.unlink(join(app.config['DATA_DIR'],f"matches/running/{match}.json"))
-    return render_template('result_game.html')
+    if data["winner"] == session['uuid']:
+        win = cur.execute("SELECT win FROM stats where uuid=?;",(session['uuid'], )).fetchone()[0] + 1
+        cur.execute("UPDATE stats SET win=? WHERE uuid=? ;",( win, session['uuid'], )).fetchone()[0]
+        victoire = True
+    else:
+        victoire = False
+    return render_template('result_game.html', victoire=victoire, carte=data['map'])
 
 @app.route("/api/queue")
 def return_queue():
