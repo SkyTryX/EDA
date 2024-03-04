@@ -87,7 +87,7 @@ def jouer():
 
 @app.route("/queue")
 def queue():
-    session["gamemode"] = "course"
+    session["gamemode"] = request.args.get('gamemode')
     if session["uuid"] != None:
         with open(join(app.config['DATA_DIR'],"matches/queue.json"), "r") as file_read:
             data = load(file_read)
