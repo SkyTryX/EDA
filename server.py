@@ -29,11 +29,12 @@ def connect():
     con = sqlite3.connect(join(app.config['DATA_DIR'],'database/compte.db'))
     cur = con.cursor()
     logging = cur.execute("SELECT mail, mdp FROM donnee WHERE mail=? AND mdp=?;",(request.form['mail'], request.form['mdp'])).fetchall()
-    if logging != None:
-        session['uuid'] = cur.execute("SELECT uuid FROM donnee WHERE mail=?;",(request.form['mail'],)).fetchone()
+    if len(logging) != 0:
+        session['uuid'] = cur.execute("SELECT uuid FROM donnee WHERE mail=?;",(request.form['mail'],)).fetchone()[0]
         return render_template("index.html")
     else:
         return render_template("connection.html", erreur = True)
+
 
 @app.route("/inscription")
 def inscription():
