@@ -56,7 +56,15 @@ def inscript():
 
 @app.route("/profil")
 def profil():
-    return render_template('profil.html')
+    con = sqlite3.connect(join(app.config['DATA_DIR'],'database/compte.db'))
+    cur = con.cursor()
+    print(session['uuid'])
+    pseudo = cur.execute("SELECT pseudo FROM donnee WHERE uuid=?;",(session['uuid'], )).fetchone()[0]
+    mail = cur.execute("SELECT mail FROM donnee where uuid=?;",(session['uuid'], )).fetchone()[0]
+    mail = f"*******{mail[3:]}"
+    win = cur.execute("SELECT win FROM stats where uuid=?;",(session['uuid'], )).fetchone()[0]
+    elo = cur.execute("SELECT elo FROM stats where uuid=?;",(session['uuid'], )).fetchone()[0]
+    return render_template('profil.html', pseudo = pseudo, mail = mail, win = win, elo = elo)
 
 @app.route("/deconnexion")
 def deconnexion():
