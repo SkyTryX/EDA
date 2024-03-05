@@ -47,7 +47,28 @@ def lexxer(code:str)->list:
     """
     Returns the code as a list of instructions, that can get compiled
     """
-    ...
+    prog = []
+    temp = ""
+    for i in range(len(code)):
+        temp += code[i]
+        if temp == "if(":
+            ...
+        elif temp == "av(":
+            count = 1
+            while True:
+                i+= 1
+                if code[i].isdigit():
+                    count = int(code[i])*(10**(len(str(count))-1))
+                elif code[i] == ")":
+                    prog.append({"av":count})
+                    break
+        elif code[i] in ["{",";"]:
+            temp = ""
+        elif temp == "td()":
+            prog.append({"td":[]})
+        elif temp == "}":
+            prog.append({"endrepeat":[]})
+    return prog
 
 
 def compiler(instr:list)->dict[int, function]:
