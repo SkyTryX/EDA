@@ -1,3 +1,4 @@
+from codecs import ascii_decode
 from flask import Flask, render_template, request, session, redirect
 from os.path import join, dirname, realpath
 import sqlite3
@@ -97,13 +98,36 @@ def queue():
 
 @app.route("/course")
 def course():
-    output = check_output("python display.py", shell=True)
-    img = output.decode("utf-8")
-    return render_template('combat.html', img=img)
+    pass
+
 
 @app.route("/combat")
-def combat():
-    pass
+def combat(model):
+    SYMB = {
+        'wall': '*',
+        'free': ' ',
+        'bot': ['@', '#']
+    }
+    w = model['w']
+    h = model['h']
+    mur = model['walls']
+    bots = model['bot']
+
+    truc = ""
+    for x in range(w):
+        for y in range(h):
+            if (x, y) in mur:
+                truc += SYMB['wall']
+            elif (x, y) in bots.values():
+                truc += SYMB['bot'][len(bots) % 2]
+            else:
+                truc += SYMB['free']
+        truc += "\n"
+
+    return render_template('combat.html', map=truc) 
+
+if __name__ == '__main__':
+    app.run(debug=True)
 
 @app.route("/result_game")
 def result_game():
