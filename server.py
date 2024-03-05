@@ -8,6 +8,8 @@ from uuid import uuid4
 from json import load, dump
 from pathlib import Path
 from subprocess import check_output
+from functions.display_map import load_map
+from random import randint
 
 app = Flask(__name__)
 app.config['DATA_DIR'] = join(dirname(realpath(__file__)),'static')
@@ -102,7 +104,8 @@ def course():
 
 
 @app.route("/combat")
-def combat(model):
+def combat():
+    model = load_map(join(app.config['DATA_DIR'],f'maps/map{randint(1,1)}.csv'))
     SYMB = {
         'wall': '*',
         'free': ' ',
