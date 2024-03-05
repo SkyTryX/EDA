@@ -1,5 +1,9 @@
 import csv
 
+
+# CODE INUTILE MAIS A NE PAS SUPPRIMER
+
+
 def load_map(map_csv):
     with open(map_csv, 'r') as file:
         reader = csv.reader(file)

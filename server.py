@@ -3,10 +3,12 @@ from os.path import join, dirname, realpath
 import sqlite3
 from functions.render import load_map_from_csv
 from functions.parser import eda_sharp
+from functions.diplay_map import load_map
 from uuid import uuid4
 from json import load, dump
 from pathlib import Path
 from functions import display
+from random import randint
 
 app = Flask(__name__)
 app.config['DATA_DIR'] = join(dirname(realpath(__file__)),'static')
@@ -118,13 +120,13 @@ def queue():
 
 @app.route("/course")
 def course():
-    map_data = load_map_from_csv(join(app.config['DATA_DIR'],'maps/map.csv'))
-    return render_template('course.html', map=map_data)
+    map_data = load_map(join(app.config['DATA_DIR'],f'maps/map{randint(1,1)}.csv'))
+    return render_template('course.html')
 
 @app.route("/combat")
 def combat():
-    map_ascii = display()
-    return render_template('combat.html', map=map_ascii)
+    map_data = load_map(join(app.config['DATA_DIR'],f'maps/map{randint(1,1)}.csv'))
+    return render_template('combat.html')
 
 @app.route("/result_game")
 def result_game():
