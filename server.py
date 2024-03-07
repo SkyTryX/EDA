@@ -8,6 +8,7 @@ from json import load, dump
 from pathlib import Path
 from functions.display_map import load_map
 from random import randint
+import json
 
 app = Flask(__name__)
 app.config['DATA_DIR'] = join(dirname(realpath(__file__)),'static')
@@ -125,41 +126,52 @@ def course():
 
 @app.route("/combat")
 def combat():
-    model = load_map(join(app.config['DATA_DIR'],f'maps/map{randint(1,1)}.csv'))
+    map_data = load_map(join(app.config['DATA_DIR'],f'maps/map{randint(1,1)}.csv'))
     SYMB = {
-        'wall': '*',
-        'free': ' ',
-        'bot1': '@',
-        'bot2': '#'
+        0: ' . ',
+        1: ' # ',
+        2: ' & ',
+        3: ' @ '
     }
-    w = len(model[0])
-    h = len(model)
+    w = len(map_data[0])
+    h = len(map_data)
 
     truc = ""
     for y in range(h):
         for x in range(w):
-            truc += SYMB[model[y][x]]
+            truc += SYMB[map_data[y][x]]
         truc += "\n"
 
     return render_template('combat.html', map=truc)
-
 
 @app.route("/result_game")
 def result_game():
     con = sqlite3.connect(join(app.config['DATA_DIR'],'database/compte.db'))
     cur = con.cursor()
     match = session["match"]
-    with open(join(app.config['DATA_DIR'],f"matches/running/{match}.json"), "w") as file:
-        data = load(file)
-        with open(join(app.config['DATA_DIR'],f"matches/logs/{match}.json"), "w") as file_w:
-            dump(data, file_w)
+    with open(join(app.config['DATA_DIR'],f"matches/running/{match}.json"), "r") as file:
+        data = json.load(file)
+    with open(join(app.config['DATA_DIR'],f"matches/logs/{match}.json"), "w") as file_w:
+        json.dump(data, file_w)
     Path.unlink(join(app.config['DATA_DIR'],f"matches/running/{match}.json"))
     if data["winner"] == session['uuid']:
         win = cur.execute("SELECT win FROM stats where uuid=?;",(session['uuid'], )).fetchone()[0] + 1
         cur.execute("UPDATE stats SET win=? WHERE uuid=? ;",( win, session['uuid'], )).fetchone()[0]
         victoire = True
     else:
+        win = cur.execute("SELECT loss FROM stats where uuid=?;",(session['uuid'], )).fetchone()[0] + 1
+        cur.execute("UPDATE stats SET loss=? WHERE uuid=? ;",( win, session['uuid'], )).fetchone()[0]
         victoire = False
+
+    # Convert bot positions to tuples
+    data["bots"]["bot1"] = tuple(data["bots"]["bot1"])
+    data["bots"]["bot2"] = tuple(data["bots"]["bot2"])
+
+
+    resultuuid= str(uuid4())
+    with open(join(app.config['DATA_DIR'],f"matches/results/{resultuuid}.json"), "w") as file:
+        json.dump(data, file)
+
     return render_template('result_game.html', victoire=victoire, carte=data['map'])
 
 @app.route("/api/queue")
