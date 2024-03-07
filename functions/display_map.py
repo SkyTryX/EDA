@@ -7,11 +7,20 @@ def load_map(map_csv):
 
     w = len(data[0])
     h = len(data)
-    
-    data = [[int(cell) for cell in row] for row in data]
 
-    return data
+    walls = [(x, y) for y in range(h) for x in range(w) if data[y][x] == '1']
+    bot1 = [(x, y) for y in range(h) for x in range(w) if data[y][x] == '2']
+    bot2 = [(x, y) for y in range(h) for x in range(w) if data[y][x] == '3']
 
+    bot = {'1' : bot1, '2' : bot2}
+
+    model = {
+        'w': w,
+        'h': h,
+        'bot' : bot,
+        'walls': walls
+    }
+    return model
 
 def deplacemennt(dico, position_bot : list[tuple], namebot):
     """
