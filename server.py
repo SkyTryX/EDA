@@ -122,7 +122,21 @@ def queue():
 @app.route("/course")
 def course():
     map_data = load_map(join(app.config['DATA_DIR'],f'maps/map{randint(1,1)}.csv'))
-    return render_template('course.html')
+    SYMB = {
+        0: ' . ',
+        1: ' # ',
+        2: ' & ',
+        3: ' @ '
+    }
+    w = len(map_data[0])
+    h = len(map_data)
+
+    truc = ""
+    for y in range(h):
+        for x in range(w):
+            truc += SYMB[map_data[y][x]]
+        truc += "\n"
+    return render_template('course.html', map=truc)
 
 @app.route("/combat")
 def combat():
