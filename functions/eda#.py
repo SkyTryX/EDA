@@ -10,8 +10,8 @@ class CPU:
     les lettres z et t sont des variables vides
     """
     def __init__(self) -> None:
-        self.POS = 0 # addresse mémoire
-        self.ANGL = 1 # addresse mémoire
+        self.POS = 0
+        self.ANGL = 1
         self.MEM = {self.POS: 0, self.ANGL: 0}
         self.REG = {}
         self.PC = 1
@@ -19,9 +19,6 @@ class CPU:
         self.CMD = {}
 
     def temp_reg(self) -> None:
-        """
-        prend la plus petite clé libre dans proc.REG
-        """
         return max(self.MEM.keys()) + 1
     
     def STORE(self, M1, X, z):
@@ -70,7 +67,7 @@ class CPU:
             print(f"REG: {self.REG}, PC: {self.PC}, POS: {self.POS}, ANGL: {self.ANGL}")
             input("$ hit Enter to proceed")
 
-OP_CODE = Literal['REPEAT', 'AV', 'TD', 'TG', 'IFTHENELSE']
+OP_CODE = Literal['REPEAT', 'AV', 'TD', 'TG', 'IFTHENELSE', 'WAIT']
 
 class NOOP:
     """the empty ast"""
@@ -93,34 +90,25 @@ ast = OP('REPEAT', (7,[
 class ASM:
     """
     prog in assembly code
-    ex:
-    prog = {
-    1: ('LOADI',0,0,),
-    2: ('LOADI',1,3,), 
-    3: ('LOADI',2,2,),
-    4: ('BEQ',0,1,9),
-    5: ('ADDI',1,1,-1),
-    8: ('J',4,,),
-    9: ('NOOP',,,)
-    }
+   {1: ('LOADI',0,0,),
+    2: ('BEQ',0,1,9),
+    3: ('ADDI',1,1,-1),
+    4: ('J',4,,),
+    5: ('NOOP',,,)}
     """
 
     def __init__(self, c: CPU) -> None:
         self.cpu = c
         self.prog = {}
-     
-def ordine(prog: OP, proc: CPU) -> ASM:
-    """attribue les numéros de lignes ?"""
 
-    pass
 
 def compile(source: OP, p: CPU) -> ASM:
     asm = ASM(p)
     TEMP = p.temp_reg() # addresse registre temporaire
     match source:
-        case OP(op_code='AV', args=(X,_)):
+        case OP(op_code='AV', args=_):
             asm.prog[1] = ('LOAD', TEMP, p.POS,0)
-            asm.prog[2] = ('ADDI', TEMP, TEMP,X)
+            asm.prog[2] = ('ADDI', TEMP, TEMP, 1)
             asm.prog[3] = ('STORE', p.POS, TEMP,0)
         case OP(op_code='TD', args=_ ):
             asm.prog[1] = ('LOAD', TEMP, p.ANGL,0)
@@ -130,6 +118,8 @@ def compile(source: OP, p: CPU) -> ASM:
             asm.prog[1] = ('LOAD', TEMP, p.ANGL,0)
             asm.prog[2] = ('ADDI', TEMP, TEMP, 90)
             asm.prog[3] = ('STORE', p.ANGL, TEMP,0)
+        case OP(op_code="WAIT", args=_):
+            asm.prog[1] = ('NOOP')
     return asm
 
 def read_args(code:str)->tuple[str, int]:
@@ -146,45 +136,37 @@ def lexxer(code:str)->list[OP]:
     """
     Returns the code as a list of instructions, that can get compiled
     """
-    prog = []
-    temp = ""
-    repeating = False
-    repeat_list = []
+    prog:list[OP] = []
+    temp:str = ""
+    repeating:bool = False
+    repeat_list:list[list] = []
     for i,c in enumerate(code):
         temp += c
         if temp == "av(":
             a = read_args(code[i+1:])
             if repeating:
-                repeat_list[len(repeat_list)-1].append(OP(op_code='AV', args=(int(a[0]))))
+                repeat_list[len(repeat_list)-1].append(OP(op_code="REPEAT", args=(a, [OP(op_code="AV", args=(0, []))])))
             else:
-                prog.append(OP(op_code='av', args=(int(a[0]))))
+                prog.append(OP(op_code="REPEAT", args=(a, [OP(op_code="AV", args=(0, []))])))
         elif temp == "attack(":
             a = read_args(code[i+1:])
             if repeating:
                 repeat_list[len(repeat_list)-1].append(OP(op_code='ATTACK', args=(a[0], a[1])))
             else:
                 prog.append(OP(op_code='av', args=(a[0], a[1])))
-        elif temp in ["td()", "tg()", "take()", "wait()"]:
+        elif temp in ["td()", "tg()", "wait()"]:
             if repeating:
-                repeat_list[len(repeat_list)-1].append(OP(op_code=temp.removesuffix("()").upper(), args=()))
+                repeat_list[len(repeat_list)-1].append(OP(op_code=temp.removesuffix("()").upper(), args=(0, [])))
             else:
-                prog.append(OP(op_code=temp.removesuffix("()"), args=()))
+                prog.append(OP(op_code=temp.removesuffix("()"), args=(0, [])))
         elif c in ["{",";"]:
             temp = ""
         elif temp == "repeat(":
             a = read_args(code[i+1:])
-            repeat_list.append([a])
+            repeat_list.append(a)
             repeating = True
         elif c == "}":
-            prog.append(OP(op_code="REPEAT", args=tuple(repeat_list[len(repeat_list)-1])))
+            prog.append(OP(op_code="REPEAT", args=(repeat_list[len(repeat_list)-1][0], repeat_list[len(repeat_list)-1][1:])))
             repeating = False
             temp = ""
     return prog
-
-print(lexxer("take();repeat(2){av(50);attack(cac, up);take();tg();}wait();"))
-
-def compiler(instr:list)->dict[int, function]:
-    """
-    Returns the Assembly code of the instructions, that can get executed
-    """
-    ...
