@@ -4,13 +4,12 @@ from os.path import join, dirname, realpath
 import sqlite3
 from functions.render import load_map_from_csv
 from functions.parser import eda_sharp
-from functions.diplay_map import load_map
 from uuid import uuid4
 from json import load, dump
 from pathlib import Path
 from subprocess import check_output
 from random import randint
-from random import randint
+from functions.display_map import load_map
 
 app = Flask(__name__)
 app.config['DATA_DIR'] = join(dirname(realpath(__file__)),'static')
@@ -138,45 +137,34 @@ def combat():
         for y in range(h):
             if (x, y) in mur:
                 truc += SYMB['wall']
-            elif (x, y) in bots.values():
-                truc += SYMB['bot'][len(bots) % 2]
             else:
-                truc += SYMB['free']
+                is_bot = False
+                for bot_id, bot_locations in bots.items():
+                    if (x, y) in bot_locations:
+                        truc += SYMB['bot'][int(bot_id) - 1]
+                        is_bot = True
+                if not is_bot:
+                    truc += SYMB['free']
         truc += "\n"
 
     return render_template('combat.html', map=truc) 
-
-if __name__ == '__main__':
-    app.run(debug=True)
-    map_data = load_map(join(app.config['DATA_DIR'],f'maps/map{randint(1,1)}.csv'))
-    return render_template('combat.html')
 
 @app.route("/result_game")
 def result_game():
     con = sqlite3.connect(join(app.config['DATA_DIR'],'database/compte.db'))
     cur = con.cursor()
     match = session["match"]
-    try:
-        with open(join(app.config['DATA_DIR'],f"matches/running/{match}.json"), "r") as file:
-            data = load(file)
-            with open(join(app.config['DATA_DIR'],f"matches/logs/{match}.json"), "w") as file_w:
-                dump(data, file_w)
-    except FileNotFoundError:
-        return "Error: Match file not found."
-    except Exception as e:
-        return f"Error: {e}"
-    try:
-        Path.unlink(join(app.config['DATA_DIR'],f"matches/running/{match}.json"))
+    with open(join(app.config['DATA_DIR'],f"matches/running/{match}.json"), "w") as file:
+        data = load(file)
+        with open(join(app.config['DATA_DIR'],f"matches/logs/{match}.json"), "w") as file_w:
+            dump(data, file_w)
+    Path.unlink(join(app.config['DATA_DIR'],f"matches/running/{match}.json"))
     if data["winner"] == session['uuid']:
         win = cur.execute("SELECT win FROM stats where uuid=?;",(session['uuid'], )).fetchone()[0] + 1
         cur.execute("UPDATE stats SET win=? WHERE uuid=? ;",( win, session['uuid'], )).fetchone()[0]
         victoire = True
     else:
         victoire = False
-    except FileNotFoundError:
-        return "Error: Match file not found."
-    except Exception as e:
-        return f"Error: {e}"
     return render_template('result_game.html', victoire=victoire, carte=data['map'])
 
 @app.route("/api/queue")
