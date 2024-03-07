@@ -140,32 +140,33 @@ def course():
 
 @app.route("/combat")
 def combat():
-    map_data = load_map(join(app.config['DATA_DIR'],f'maps/map{randint(1,1)}.csv'))
+    model = load_map(join(app.config['DATA_DIR'],f'maps/map{randint(1,1)}.csv'))
     SYMB = {
-        0: ' . ',
-        1: ' # ',
-        2: ' & ',
-        3: ' @ '
+        'wall': '*',
+        'free': ' ',
+        'bot': ['@', '#']
     }
-    w = len(map_data[0])
-    h = len(map_data)
+    w = model['w']
+    h = model['h']
+    mur = model['walls']
+    bots = model['bot']
 
     truc = ""
-    for y in range(h):
-        for x in range(w):
-            truc += SYMB[map_data[y][x]]
+    for x in range(w):
+        for y in range(h):
+            if (x, y) in mur:
+                truc += SYMB['wall']
+            else:
+                is_bot = False
+                for bot_id, bot_locations in bots.items():
+                    if (x, y) in bot_locations:
+                        truc += SYMB['bot'][int(bot_id) - 1]
+                        is_bot = True
+                if not is_bot:
+                    truc += SYMB['free']
         truc += "\n"
 
-    try:
-        session['code'] =  request.form['code']
-    except:
-        IndexError
-    if session['code'] != None:
-            code_entrer = True
-    else:
-        code_entrer = False
-
-    return render_template('combat.html', map=truc, gamemode=session['gamemode'],code=session['code'], code_entrer=code_entrer)
+    return render_template('combat.html', map=truc) 
 
 @app.route("/result_game")
 def result_game():
