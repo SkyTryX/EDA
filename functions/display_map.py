@@ -1,7 +1,5 @@
 import csv
 
-# 16 * 11
-
 def load_map(map_csv):
     with open(map_csv, 'r') as file:
         reader = csv.reader(file)
@@ -10,20 +8,16 @@ def load_map(map_csv):
     w = len(data[0])
     h = len(data)
 
-    walls = [(x, y) for y in range(h) for x in range(w) if data[y][x] == '1']
-    bot1 = [(x, y) for y in range(h) for x in range(w) if data[y][x] == '2']
-    bot2 = [(x, y) for y in range(h) for x in range(w) if data[y][x] == '3']
+    data = [[int(cell) for cell in row] for row in data]
 
-    bot = {'1' : bot1, '2' : bot2}
-
-    model = {
-        'w': w,
-        'h': h,
-        'bot' : bot,
-        'walls': walls
+    SYMB = {
+        0: 'free',
+        1: 'wall',
+        2: 'bot1',
+        3: 'bot2'
     }
+    model = [[SYMB[value] for value in row] for row in data] 
     return model
-
 
 def deplacemennt(dico, position_bot : list[tuple], namebot):
     """
