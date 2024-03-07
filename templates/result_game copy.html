@@ -6,10 +6,14 @@
     <title>Document</title>
 </head>
 <body>
-    Choisir le mode de jeu <br><br>
-    <a href="/queue?gamemode=course">Course</a><br>
-    <a href="/queue?gamemode=combat">Combat</a>
-    <br><br>
-    <a href="/index">Retour</a>
+    <i>** Résultats du jeu **</i><br><br>
+    {{carte}}
+    <br>
+    {% if victoire %}
+    VICTOIRE
+    {% else %}
+    DEFAIITE
+    {% endif %}
+    <a href="/index">Exit</a>
 </body>
 </html>
