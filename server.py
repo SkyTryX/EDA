@@ -136,7 +136,7 @@ def course():
         for x in range(w):
             truc += SYMB[map_data[y][x]]
         truc += "\n"
-    return render_template('course.html', map=truc)
+    return render_template('course.html', map=truc, gamemode=session['gamemode'])
 
 @app.route("/combat")
 def combat():
@@ -156,7 +156,16 @@ def combat():
             truc += SYMB[map_data[y][x]]
         truc += "\n"
 
-    return render_template('combat.html', map=truc)
+    try:
+        session['code'] =  request.form['code']
+    except:
+        IndexError
+    if session['code'] != None:
+            code_entrer = True
+    else:
+        code_entrer = False
+
+    return render_template('combat.html', map=truc, gamemode=session['gamemode'],code=session['code'], code_entrer=code_entrer)
 
 @app.route("/result_game")
 def result_game():
