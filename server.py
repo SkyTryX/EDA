@@ -142,10 +142,14 @@ def combat():
         for y in range(h):
             if (x, y) in mur:
                 truc += SYMB['wall']
-            elif (x, y) in bots.values():
-                truc += SYMB['bot'][len(bots) % 2]
             else:
-                truc += SYMB['free']
+                is_bot = False
+                for bot_id, bot_locations in bots.items():
+                    if (x, y) in bot_locations:
+                        truc += SYMB['bot'][int(bot_id) - 1]
+                        is_bot = True
+                if not is_bot:
+                    truc += SYMB['free']
         truc += "\n"
 
     return render_template('combat.html', map=truc) 
