@@ -7,7 +7,7 @@ from functions.diplay_map import load_map
 from uuid import uuid4
 from json import load, dump
 from pathlib import Path
-from functions import display
+from functions.display_map import load_map
 from random import randint
 
 app = Flask(__name__)
@@ -125,8 +125,31 @@ def course():
 
 @app.route("/combat")
 def combat():
-    map_data = load_map(join(app.config['DATA_DIR'],f'maps/map{randint(1,1)}.csv'))
-    return render_template('combat.html')
+    def combat():
+    model = load_map(join(app.config['DATA_DIR'],f'maps/map{randint(1,1)}.csv'))
+    SYMB = {
+        'wall': '*',
+        'free': ' ',
+        'bot': ['@', '#']
+    }
+    w = model['w']
+    h = model['h']
+    mur = model['walls']
+    bots = model['bot']
+
+    truc = ""
+    for x in range(w):
+        for y in range(h):
+            if (x, y) in mur:
+                truc += SYMB['wall']
+            elif (x, y) in bots.values():
+                truc += SYMB['bot'][len(bots) % 2]
+            else:
+                truc += SYMB['free']
+        truc += "\n"
+
+    return render_template('combat.html', map=truc) 
+
 
 @app.route("/result_game")
 def result_game():
