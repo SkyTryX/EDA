@@ -3,7 +3,6 @@ from os.path import join, dirname, realpath
 import sqlite3
 from functions.render import load_map_from_csv
 from functions.parser import eda_sharp
-from functions.diplay_map import load_map
 from uuid import uuid4
 from json import load, dump
 from pathlib import Path
@@ -100,10 +99,12 @@ def queue():
     if session["uuid"] != None:
         with open(join(app.config['DATA_DIR'],"matches/queue.json"), "r") as file_read:
             data = load(file_read)
-            print(data[session["gamemode"]][0], session["uuid"][0])
             if data[session["gamemode"]] == "None":
+                map_data, bots = load_map(join(app.config['DATA_DIR'],f'maps/map{randint(1,1)}.csv'))
+                data[session["gamemode"]] = session["uuid"]
+                data["matches"][session["match"]]["map"] = map_data
+                data["matches"][session["match"]]["bots"] = bots
                 with open(join(app.config['DATA_DIR'],"matches/queue.json"), "w") as file:
-                    data[session["gamemode"]] = session["uuid"]
                     dump(data, file)
             elif data[session["gamemode"]][0] == session["uuid"][0]:
                 return redirect("/")
@@ -111,11 +112,10 @@ def queue():
                 with open(join(app.config['DATA_DIR'],"matches/queue.json"), "w") as file:
                     other_player = data[session["gamemode"]]
                     data[session["gamemode"]] = "None"
-                    dump(data, file)
-                matchuuid= str(uuid4())
-                with open(join(app.config['DATA_DIR'],f"matches/running/{matchuuid}.json"), "w") as file:
+                    matchuuid= str(uuid4())
                     session["match"] = matchuuid
-                    dump({"p1":session["uuid"],"p2":other_player,"map":"map","submission1":[], "submission2":[], "winner":None}, file)
+                    data["matches"][matchuuid] = {"p1":session["uuid"],"p2":other_player,"map":"map","submission1":[], "submission2":[], "winner":None, "bots": {}}
+                    dump(data, file)
     return render_template("queue.html")
 
 @app.route("/course")

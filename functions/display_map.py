@@ -10,14 +10,26 @@ def load_map(map_csv):
 
     data = [[int(cell) for cell in row] for row in data]
 
+
     SYMB = {
         0: 'free',
         1: 'wall',
         2: 'bot1',
         3: 'bot2'
     }
-    model = [[SYMB[value] for value in row] for row in data] 
-    return model
+
+    model = [[SYMB[value] for value in row] for row in data]
+
+    # Extract bot positions
+    bots = {'bot1': [], 'bot2': []}
+    for y in range(h):
+        for x in range(w):
+            if model[y][x] == 'bot1':
+                bots['bot1'].append((x, y))
+            elif model[y][x] == 'bot2':
+                bots['bot2'].append((x, y))
+
+    return model, bots
 
 def deplacemennt(dico, position_bot : list[tuple], namebot):
     """
