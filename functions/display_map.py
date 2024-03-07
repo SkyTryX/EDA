@@ -13,14 +13,8 @@ def load_map(map_csv):
     bot2 = [(x, y) for y in range(h) for x in range(w) if data[y][x] == '3']
 
     bot = {'1' : bot1, '2' : bot2}
-
-    model = {
-        'w': w,
-        'h': h,
-        'bot' : bot,
-        'walls': walls
-    }
-    return model
+    
+    return {'w': w,'h': h,'bot' : bot,'walls': walls}
 
 def deplacemennt(dico, position_bot : list[tuple], namebot):
     """
@@ -34,5 +28,3 @@ def deplacemennt(dico, position_bot : list[tuple], namebot):
         else:
             dico[namebot] = [position_bot]
             return dico, True
-
-

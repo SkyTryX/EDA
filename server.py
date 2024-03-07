@@ -16,6 +16,8 @@ app.secret_key = b'99b45274a4b2da7440ab249f17e718688b53b646f3dd57f23a9b298391617
 
 @app.route("/")
 def start():
+    session['uuid'] = None
+    session['code'] = None
     return render_template('index.html')
 
 @app.route("/index")
@@ -87,7 +89,7 @@ def moderation():
 def jouer():
     return render_template('jouer.html')
 
-@app.route("/queue")
+@app.route("/queue", methods=['GET'])
 def queue():
     """
     Système de queue indépendante du niveau, ajoute l'uuid du joueur qui cherche une partie dans 'gamemode' si aucune uuid n'est
@@ -97,14 +99,13 @@ def queue():
     {"p1":session["uuid"],"p2":other_player,"map":"map","submission1":[], "submission2":[], "winner":None}
     """
     session["gamemode"] = request.args.get('gamemode')
+    print(session['gamemode'])
+    print(session['uuid'])
     if session["uuid"] != None:
         with open(join(app.config['DATA_DIR'],"matches/queue.json"), "r") as file_read:
             data = load(file_read)
             if data[session["gamemode"]] == "None":
-                map_data, bots = load_map(join(app.config['DATA_DIR'],f'maps/map{randint(1,1)}.csv'))
                 data[session["gamemode"]] = session["uuid"]
-                data["matches"][session["match"]]["map"] = map_data
-                data["matches"][session["match"]]["bots"] = bots
                 with open(join(app.config['DATA_DIR'],"matches/queue.json"), "w") as file:
                     dump(data, file)
             elif data[session["gamemode"]][0] == session["uuid"][0]:
@@ -115,36 +116,19 @@ def queue():
                     data[session["gamemode"]] = "None"
                     matchuuid= str(uuid4())
                     session["match"] = matchuuid
-                    data["matches"][matchuuid] = {"p1":session["uuid"],"p2":other_player,"map":"map","submission1":[], "submission2":[], "winner":None, "bots": {}}
+                    with open(join(app.config['DATA_DIR'],f"matches/running/{matchuuid}.json"), "w") as file_match:
+                        dump({"p1":session["uuid"],"p2":other_player,"map":"map","submission1":[], "submission2":[], "winner":None}, file_match)
+                    data[session["gamemode"]] = "None"
                     dump(data, file)
     return render_template("queue.html")
-
-@app.route("/course")
-def course():
-    map_data = load_map(join(app.config['DATA_DIR'],f'maps/map{randint(1,1)}.csv'))
-    SYMB = {
-        0: ' . ',
-        1: ' # ',
-        2: ' & ',
-        3: ' @ '
-    }
-    w = len(map_data[0])
-    h = len(map_data)
-
-    truc = ""
-    for y in range(h):
-        for x in range(w):
-            truc += SYMB[map_data[y][x]]
-        truc += "\n"
-    return render_template('course.html', map=truc, gamemode=session['gamemode'])
 
 @app.route("/combat")
 def combat():
     model = load_map(join(app.config['DATA_DIR'],f'maps/map{randint(1,1)}.csv'))
     SYMB = {
-        'wall': '*',
-        'free': ' ',
-        'bot': ['@', '#']
+        'wall': ' X ',
+        'free': '   ',
+        'bot': [' @ ', ' # ']
     }
     w = model['w']
     h = model['h']
@@ -165,8 +149,16 @@ def combat():
                 if not is_bot:
                     truc += SYMB['free']
         truc += "\n"
+    try:
+        session['code'] =  request.form['code']
+    except:
+        IndexError
+    if session['code'] != None:
+            code_entrer = True
+    else:
+        code_entrer = False
 
-    return render_template('combat.html', map=truc) 
+    return render_template('combat.html', map=truc, gamemode=session['gamemode'],code=session['code'], code_entrer=code_entrer)
 
 @app.route("/result_game")
 def result_game():

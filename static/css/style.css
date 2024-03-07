@@ -24,6 +24,12 @@
   width: 99.5%;
 }
 
+.test {
+  position: relative; /* or use absolute if needed */
+  top: 50%; /* aligns the top edge of .test to the middle of the page */
+  transform: translateY(-50%); /* moves the .test up by half its own height */
+}
+
 label {
   display: block;
   margin-bottom: 10px;
