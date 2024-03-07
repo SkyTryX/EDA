@@ -125,29 +125,19 @@ def combat():
     SYMB = {
         'wall': '*',
         'free': ' ',
-        'bot': ['@', '#']
+        'bot1': '@',
+        'bot2': '#'
     }
-    w = model['w']
-    h = model['h']
-    mur = model['walls']
-    bots = model['bot']
+    w = len(model[0])
+    h = len(model)
 
     truc = ""
-    for x in range(w):
-        for y in range(h):
-            if (x, y) in mur:
-                truc += SYMB['wall']
-            else:
-                is_bot = False
-                for bot_id, bot_locations in bots.items():
-                    if (x, y) in bot_locations:
-                        truc += SYMB['bot'][int(bot_id) - 1]
-                        is_bot = True
-                if not is_bot:
-                    truc += SYMB['free']
+    for y in range(h):
+        for x in range(w):
+            truc += SYMB[model[y][x]]
         truc += "\n"
 
-    return render_template('combat.html', map=truc) 
+    return render_template('combat.html', map=truc)
 
 @app.route("/result_game")
 def result_game():
