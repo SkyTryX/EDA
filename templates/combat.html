@@ -3,10 +3,31 @@
 <head>
     <title>Combat Map</title>
     <link rel="stylesheet" type="text/css" href="/static/css/combat.css">
+    <link rel="stylesheet" type="text/css" href="/static/css/style.css">
 </head>
 <body>
     <pre>
 {{map}}
     </pre>
+
+    <div class="test">
+        Vous jouer en {{ gamemode }} <br><br>
+        
+        <form action="/course?gamemode={{gamemode}}" method="POST">
+            <label for="story">CMD:</label>
+            <div class="textArea">
+                <p>{{user}}@eda#.prog></p>
+                <textarea id="story" name="code" rows="13" required placeholder="Votre code..."></textarea>
+            </div>
+    
+            <input type="submit" value="Lancer"><br>
+    
+    
+        {% if code_entrer %}
+        votre ancien code est {{code}}
+        <br><br>
+        {% endif %}
+        </div>
+    
 </body>
 </html>
