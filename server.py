@@ -3,7 +3,7 @@ from os.path import join, dirname, realpath
 import sqlite3
 from functions.render import load_map_from_csv
 from functions.parser import eda_sharp
-from functions.diplay_map import load_map
+from functions.display_map import load_map
 from uuid import uuid4
 from json import load, dump
 from pathlib import Path
