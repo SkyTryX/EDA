@@ -166,7 +166,11 @@ def lexxer(code:str)->list[OP]:
             repeat_list.append(a)
             repeating = True
         elif c == "}":
-            prog.append(OP(op_code="REPEAT", args=(repeat_list[len(repeat_list)-1][0], repeat_list[len(repeat_list)-1][1:])))
+            if len(repeat_list) >= 2:
+                repeat_list[len(repeat_list)-1].append(OP(op_code="REPEAT", args=(repeat_list[len(repeat_list)-1][0], repeat_list[len(repeat_list)-1][1:])))
+            else:
+                prog.append(OP(op_code="REPEAT", args=(repeat_list[len(repeat_list)-1][0], repeat_list[len(repeat_list)-1][1:])))
+            repeat_list.pop(len(repeat_list)-1)
             repeating = False
             temp = ""
     return prog
