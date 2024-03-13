@@ -122,7 +122,7 @@ def queue():
                     dump(data, file)
     return render_template("queue.html")
 
-@app.route("/combat")
+@app.route("/combat", methods=['POST'])
 def combat():
     model = load_map(join(app.config['DATA_DIR'],f'maps/map{randint(1,1)}.csv'))
     SYMB = {
