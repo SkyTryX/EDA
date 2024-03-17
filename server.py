@@ -9,10 +9,13 @@ from pathlib import Path
 from functions.display_map import load_map
 from random import randint
 import json
+from flask_sockets import Sockets
 
 app = Flask(__name__)
 app.config['DATA_DIR'] = join(dirname(realpath(__file__)),'static')
 app.secret_key = b'99b45274a4b2da7440ab249f17e718688b53b646f3dd57f23a9b29839161749f'
+sockets = Sockets(app)
+
 
 @app.route("/")
 def start():
@@ -197,6 +200,23 @@ def return_queue():
 @app.route("/api/translator")
 def return_translated():
     return eda_sharp(request.args.get("prog"))
+
+@sockets.route('/combat_socket')
+def combat_socket(ws):
+    while True:
+        message = ws.receive()
+        if message:
+            data = json.loads(message)
+            map = data.get('map')
+            if map:
+                ws.send(json.dumps({'type': 'map', 'map': map}))
+
+if __name__ == "__main__":
+    from gevent.pywsgi import WSGIServer
+    from geventwebsocket.handler import WebSocketHandler
+
+    http_server = WSGIServer(('0.0.0.0', 5000), app, handler_class=WebSocketHandler)
+    http_server.serve_forever()
 
 
 app.run(host = '127.0.0.1', port='5000', debug=True)

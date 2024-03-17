@@ -2,13 +2,28 @@
 <html>
 <head>
     <title>Combat Map</title>
-    <link rel="stylesheet" type="text/css" href="/static/css/combat.css">
-    <link rel="stylesheet" type="text/css" href="/static/css/style.css">
+    <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/sockjs-client/1.5.0/sockjs.min.js"></script>
+    <script>
+        $(document).ready(function() {
+            var socket = new SockJS('/combat_socket');
+            socket.onmessage = function(e) {
+                var data = JSON.parse(e.data);
+                if (data.type === 'map') {
+                    $('#map').text(data.map);
+                }
+            };
+            socket.onopen = function() {
+                console.log('WebSocket connected');
+            };
+            socket.onclose = function() {
+                console.log('WebSocket disconnected');
+            };
+        });
+    </script>
 </head>
 <body>
-    <pre>
-{{map}}
-    </pre>
+    <pre id="map">{{ map }}</pre>
     <div class="test">
         Vous jouer en {{ gamemode }} <br><br>
         
@@ -23,6 +38,6 @@
         votre ancien code est {{code}}
         <br><br>
         {% endif %}
-        </div>  
+        </div>    
 </body>
 </html>
