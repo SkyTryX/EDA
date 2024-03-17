@@ -10,9 +10,11 @@ class CPU:
     les lettres z et t sont des variables vides
     """
     def __init__(self) -> None:
-        self.POS = 0
-        self.ANGL = 1
-        self.MEM = {self.POS: 0, self.ANGL: 0}
+        self.POSX = 0
+        self.POSY = 1
+        self.ANGL = 2
+        self.SHIELD = 3
+        self.MEM = {self.POSX: 0, self.POSY: 0, self.ANGL: 0, self.SHIELD: 0}
         self.REG = {}
         self.PC = 1
         self.IR = None
@@ -64,10 +66,10 @@ class CPU:
             self.IR = self.fetchdecode(code,self.PC)
             self.PC += 1
             self.IR()
-            print(f"REG: {self.REG}, PC: {self.PC}, POS: {self.POS}, ANGL: {self.ANGL}")
+            print(f"REG: {self.REG}, PC: {self.PC}, POSX: {self.POSX}, POSY: {self.POSY}")
             input("$ hit Enter to proceed")
 
-OP_CODE = Literal['REPEAT', 'AV', 'TD', 'TG', 'IFTHENELSE', 'WAIT']
+OP_CODE = Literal['REPEAT', 'GAUCHE', 'DROITE', 'BAS', 'HAUT' 'IFTHENELSE', 'WAIT', 'SHIELD']
 
 class NOOP:
     """the empty ast"""
@@ -106,20 +108,35 @@ def compile(source: OP, p: CPU) -> ASM:
     asm = ASM(p)
     TEMP = p.temp_reg() # addresse registre temporaire
     match source:
-        case OP(op_code='AV', args=_):
-            asm.prog[1] = ('LOAD', TEMP, p.POS,0)
+        case OP(op_code='GAUCHE', args=_):
+            asm.prog[1] = ('LOAD', TEMP, p.POSX,0)
+            asm.prog[2] = ('ADDI', TEMP, TEMP, -1)
+            asm.prog[3] = ('STORE', p.POSX, TEMP,0)
+            asm.prog[4] = ('LOADI', p.ANGL, 180)
+        case OP(op_code='DROITE', args=_ ):
+            asm.prog[1] = ('LOAD', TEMP, p.POSX,0)
             asm.prog[2] = ('ADDI', TEMP, TEMP, 1)
-            asm.prog[3] = ('STORE', p.POS, TEMP,0)
-        case OP(op_code='TD', args=_ ):
-            asm.prog[1] = ('LOAD', TEMP, p.ANGL,0)
-            asm.prog[2] = ('ADDI', TEMP, TEMP, -90)
-            asm.prog[3] = ('STORE', p.ANGL, TEMP,0)
-        case OP(op_code='TG', args=_ ):
-            asm.prog[1] = ('LOAD', TEMP, p.ANGL,0)
-            asm.prog[2] = ('ADDI', TEMP, TEMP, 90)
-            asm.prog[3] = ('STORE', p.ANGL, TEMP,0)
+            asm.prog[3] = ('STORE', p.POSX, TEMP,0)
+            asm.prog[4] = ('LOADI', p.ANGL, 0)
+        case OP(op_code='BAS', args=_):
+            asm.prog[1] = ('LOAD', TEMP, p.POSY,0)
+            asm.prog[2] = ('ADDI', TEMP, TEMP, 1)
+            asm.prog[3] = ('STORE', p.POSY, TEMP,0)
+            asm.prog[4] = ('LOADI', p.ANGL, 270)
+        case OP(op_code='HAUT', args=_):
+            asm.prog[1] = ('LOAD', TEMP, p.POSY,0)
+            asm.prog[2] = ('ADDI', TEMP, TEMP, -1)
+            asm.prog[3] = ('STORE', p.POSY, TEMP,0)
+            asm.prog[4] = ('LOADI', p.ANGL, 90)
         case OP(op_code="WAIT", args=_):
             asm.prog[1] = ('NOOP')
+        case OP(op_code="SHIELD", args=(X,_)):
+            ...
+        case OP(op_code="REPEAT", args=(X,L)):
+            # Créé une variable pour le repeat, jump si fin du repeat
+            ## Faire une loop pour avoir l'assembleur dans le repeat (UTILISER SEQ(A, B))
+            # jump back 
+            ...
     return asm
 
 def read_args(code:str)->tuple[str, int]:
@@ -142,19 +159,13 @@ def lexxer(code:str)->list[OP]:
     repeat_list:list[list] = []
     for i,c in enumerate(code):
         temp += c
-        if temp == "av(":
+        if temp == "shield(":
             a = read_args(code[i+1:])
             if repeating:
-                repeat_list[len(repeat_list)-1].append(OP(op_code="REPEAT", args=(a, [OP(op_code="AV", args=(0, []))])))
+                repeat_list[len(repeat_list)-1].append(OP(op_code='SHIELD', args=(a[0], [])))
             else:
-                prog.append(OP(op_code="REPEAT", args=(a, [OP(op_code="AV", args=(0, []))])))
-        elif temp == "attack(":
-            a = read_args(code[i+1:])
-            if repeating:
-                repeat_list[len(repeat_list)-1].append(OP(op_code='ATTACK', args=(a[0], a[1])))
-            else:
-                prog.append(OP(op_code='av', args=(a[0], a[1])))
-        elif temp in ["td()", "tg()", "wait()"]:
+                prog.append(OP(op_code='SHIELD', args=(a[0], [])))
+        elif temp in ["gauche()", "droite()", "bas()", "haut()", "wait()"]:
             if repeating:
                 repeat_list[len(repeat_list)-1].append(OP(op_code=temp.removesuffix("()").upper(), args=(0, [])))
             else:
@@ -174,3 +185,15 @@ def lexxer(code:str)->list[OP]:
             repeating = False
             temp = ""
     return prog
+
+
+
+
+
+
+"""
+A FAIRE:
+- Ajouter les instructions assembleurs pour shield et repeat
+- Trouver un moyen pour etiquetter chaque instruction assembleur par cmd
+- Faire le parser à partir de ce qui a été lexxé
+"""
