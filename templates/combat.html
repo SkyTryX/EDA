@@ -1,24 +1,28 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Jeu</title>
+    <title>Combat Map</title>
+    <link rel="stylesheet" type="text/css" href="/static/css/combat.css">
+    <link rel="stylesheet" type="text/css" href="/static/css/style.css">
 </head>
 <body>
-    <h1>Jeu</h1>
-    <div>
-        {% for row in map %}
-            <div>
-                {% for cell in row %}
-                    {% if cell == '1' %}
-                        <div style="background-color: black; width: 20px; height: 20px; display: inline-block;"></div>
-                    {% elif cell == '2' %}
-                        <div style="background-color: yellow; width: 20px; height: 20px; display: inline-block;"></div>
-                    {% elif cell == '0' %}
-                        <div style="background-color: white; width: 20px; height: 20px; display: inline-block;"></div>
-                    {% endif %}
-                {% endfor %}
+    <pre>
+{{map}}
+    </pre>
+    <div class="test">
+        Vous jouer en {{ gamemode }} <br><br>
+        
+        <form action="/combat?gamemode={{gamemode}}" method="POST">
+            <label for="story">CMD:</label>
+            <div class="textArea">
+                <p>{{user}}@eda#.prog></p>
+                <textarea id="story" name="code" rows="13" required placeholder="Votre code..."></textarea>
             </div>
-        {% endfor %}
-    </div>
+            <input type="submit" value="Lancer"><br>
+        {% if code_entrer %}
+        votre ancien code est {{code}}
+        <br><br>
+        {% endif %}
+        </div>  
 </body>
 </html>
