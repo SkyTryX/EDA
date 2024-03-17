@@ -127,7 +127,12 @@ def queue():
 
 @app.route("/combat", methods=['POST', 'GET'])
 def combat():
-    model = load_map(join(app.config['DATA_DIR'],f'maps/map{randint(1,1)}.csv'))
+    if request.method == 'POST':
+        socket = request.environ.get('sockjs.request')
+    else:
+        socket = None
+
+    model = load_map(join(app.config['DATA_DIR'],f'maps/map{randint(1,1)}.csv'), socket)
     SYMB = {
         'wall': ' X ',
         'free': '   ',
