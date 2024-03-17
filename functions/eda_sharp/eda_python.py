@@ -4,7 +4,7 @@ from json import dump, load
 memory = {0:0, 1:0, 2:[]}
 pos_x = 0
 pos_y = 1
-shields = []
+shields = 2
 
 def gauche():
     print("GAUCHE")
