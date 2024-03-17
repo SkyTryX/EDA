@@ -1,52 +1,42 @@
 from eda_assembly import OP, read_args
 from json import dump, load
 
-def gauche(p:str, match:str):
+memory = {0:0, 1:0, 2:[]}
+pos_x = 0
+pos_y = 1
+shields = []
+
+def gauche():
     print("GAUCHE")
-    with open(match+".json", "r") as file_read:
-        data = load(file_read)
-        data["pos_"+p][0] -= 1
-    with open(match+".json", "w") as file_write:
-        dump(data, file_write)
+    memory[pos_x] -= 1
 
-def droite(p:str, match:str):
-    print("DROITE")
-    with open(match+".json", "r") as file_read:
-        data = load(file_read)
-        data["pos_"+p][0] += 1
-    with open(match+".json", "w") as file_write:
-        dump(data, file_write)
+def droite():
+    memory[pos_x] += 1
 
-def bas(p:str, match:str):
-    print("BAS")
-    with open(match+".json", "r") as file_read:
-        data = load(file_read)
-        data["pos_"+p][1] += 1
-    with open(match+".json", "w") as file_write:
-        dump(data, file_write)
+def bas():
+    memory[pos_y] += 1
 
-def haut(p:str, match:str):
-    print("HAUT")
-    with open(match+".json", "r") as file_read:
-        data = load(file_read)
-        data["pos_"+p][1] -= 1
-    with open(match+".json", "w") as file_write:
-        dump(data, file_write)
+def haut():
+    memory[pos_y] -= 1
 
-def wait(p:str, match:str):
-    print("WAIT")
+def wait():
     pass
 
-def shield(p:str, match:str, tour:int):
-    print("SHIELD " + tour)
+def shield(tour:int):
+    for i in range(-1, 2):
+        for j in range(-1, 2):
+            if i != j:
+                memory[shields].append({(memory[pos_x]+i, memory[pos_y]+j):tour})
+
+def load(match:str):
     with open(match+".json", "r") as file_read:
-        data = load(file_read)
-        for i in range(-1, 2):
-            for j in range(-1, 2):
-                if i != j:
-                    data["shield"].append({(data["pos_"+p][0]+i, data["pos_"+p][1]+j):tour})
+        return load(file_read)
+
+def save(p:str, match:str, data:dict):
+    data["pos_"+p]= [memory[pos_x], memory[pos_y]]
     with open(match+".json", "w") as file_write:
         dump(data, file_write)
+
 
 def lexxer(code:str)->list[OP]:
     """
