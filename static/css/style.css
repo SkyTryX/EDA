@@ -6,8 +6,8 @@
   line-height: 1.5;
   border-radius: 5px;
   border: none;
-  box-shadow: 1px 1px 1px #999;
-  background-color: #000000;
+  box-shadow: 1px 1px 1px #000000;
+  background-color: #302b2b;
   color: rgb(175, 0, 161);
 }
 
@@ -25,9 +25,10 @@
 }
 
 .test {
-  position: relative; /* or use absolute if needed */
-  top: 50%; /* aligns the top edge of .test to the middle of the page */
-  transform: translateY(-50%); /* moves the .test up by half its own height */
+  position: relative; /* utiliser ablsolute si besoin */
+  top: 50%;
+  transform: translateY(-50%);
+  color: rgb(175, 0, 161);
 }
 
 label {
@@ -36,7 +37,7 @@ label {
 }
 
 body {
-  background-color: #999;
+  background-color: #000000;
 }
 
 a {

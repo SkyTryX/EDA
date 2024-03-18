@@ -160,6 +160,8 @@ def combat():
     else:
         code_entrer = False
 
+    socketio.emit('send_maj', {'data': truc})
+
     return render_template('combat.html', map=truc, gamemode=session['gamemode'],code=session['code'], code_entrer=code_entrer)
 
 @app.route("/result_game")
@@ -181,7 +183,6 @@ def result_game():
         cur.execute("UPDATE stats SET loss=? WHERE uuid=? ;",( win, session['uuid'], )).fetchone()[0]
         victoire = False
 
-    # Convert bot positions to tuples
     data["bots"]["bot1"] = tuple(data["bots"]["bot1"])
     data["bots"]["bot2"] = tuple(data["bots"]["bot2"])
 
