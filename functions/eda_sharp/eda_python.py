@@ -1,10 +1,35 @@
-from eda_assembly import OP, read_args
+from __future__ import annotations
+from typing import Literal
 from json import dump, load
+from dataclasses import dataclass
 
 memory = {0:0, 1:0, 2:[]}
 pos_x = 0
 pos_y = 1
 shields = 2
+
+def read_args(code:str)->tuple[str, int]:
+    res = [""]
+    for _,c in enumerate(code):
+        if c == ")":
+            return res
+        elif c == ",":
+            res.append("")
+        elif c != " ":
+            res[len(res)-1] += c
+
+OP_CODE = Literal['REPEAT', 'GAUCHE', 'DROITE', 'BAS', 'HAUT' 'IFTHENELSE', 'WAIT', 'SHIELD']
+
+class NOOP:
+    """the empty ast"""
+    pass
+
+@dataclass
+class OP:
+    op_code: OP_CODE 
+    args: tuple[int, list[OP]]
+
+
 
 def gauche():
     print("GAUCHE")
@@ -108,5 +133,3 @@ def compileur(prog:list[OP]) -> list[tuple]:
         else:
             res.append(parser(instr))
     return res
-
-print(compileur(lexxer("repeat(3){wait();}gauche();droite();")))
