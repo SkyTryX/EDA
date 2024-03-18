@@ -2,16 +2,19 @@
 <html>
 <head>
     <title>Combat Map</title>
-    <link rel="stylesheet" type="text/css" href="/static/css/combat.css">
+    <link rel="stylesheet" type="text/css"href="/static/css/combat.css">
     <link rel="stylesheet" type="text/css" href="/static/css/style.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js" integrity="sha512-q/dWJ3kcmjBLU4Qc47E4A9kTB4m3wuTY7vkFJDTZKjTs8jhyGQnaUrxa0Ytd0ssMZhbNua9hE+E7Qv1j+DyZwA==" crossorigin="anonymous"></script>
+    <script src="{{url_for('static', filename='app.js')}}"></script>
 </head>
 <body>
-    <pre>
+    <div class="map-container">
+        <pre id="zone_map" style="white-space: pre-wrap; overflow: auto;">
 {{map}}
-    </pre>
+        </pre>
+    </div>
     <div class="test">
         Vous jouer en {{ gamemode }} <br><br>
-        
         <form action="/combat?gamemode={{gamemode}}" method="POST">
             <label for="story">CMD:</label>
             <div class="textArea">
@@ -19,10 +22,11 @@
                 <textarea id="story" name="code" rows="13" required placeholder="Votre code..."></textarea>
             </div>
             <input type="submit" value="Lancer"><br>
-        {% if code_entrer %}
-        votre ancien code est {{code}}
-        <br><br>
-        {% endif %}
+            {% if code_entrer %}
+            votre ancien code est {{code}}
+            <br><br>
+            {% endif %}
         </div>  
+    </form>
 </body>
 </html>

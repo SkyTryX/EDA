@@ -2,15 +2,21 @@ from flask import Flask, render_template, request, session, redirect
 from os.path import join, dirname, realpath
 import sqlite3
 from functions.eda_sharp.eda_python import *
+from functions.render import load_map_from_csv
 from uuid import uuid4
 from json import load, dump
 from pathlib import Path
 from functions.display_map import load_map
 from random import randint
+import json
+from flask_socketio import SocketIO, emit
+import os
+
 
 app = Flask(__name__)
 app.config['DATA_DIR'] = join(dirname(realpath(__file__)),'static')
 app.secret_key = b'99b45274a4b2da7440ab249f17e718688b53b646f3dd57f23a9b29839161749f'
+socketio = SocketIO(app, logger=True, engineio_logger=True)
 
 @app.route("/")
 def start():
@@ -147,13 +153,22 @@ def combat():
                 if not is_bot:
                     truc += SYMB['free']
         truc += "\n"
+    print('Generated map:', truc)
     try:
         print("LOAD")
         session['code'] = compileur(lexxer(request.form['code']))
         print("CHECK")
     except:
         IndexError
-    return render_template('combat.html', map=truc, gamemode=session['gamemode'],code=session['code'], code_entrer=session['code'] != None)
+    if session['code'] != None:
+            code_entrer = True
+    else:
+        code_entrer = False
+
+    #balance les info de la map a jour
+    socketio.emit('maj', {'data': truc})
+
+    return render_template('combat.html', map=truc, gamemode=session['gamemode'],code=session['code'], code_entrer=code_entrer)
 
 @app.route("/result_game")
 def result_game():
@@ -174,7 +189,6 @@ def result_game():
         cur.execute("UPDATE stats SET loss=? WHERE uuid=? ;",( win, session['uuid'], )).fetchone()[0]
         victoire = False
 
-    # Convert bot positions to tuples
     data["bots"]["bot1"] = tuple(data["bots"]["bot1"])
     data["bots"]["bot2"] = tuple(data["bots"]["bot2"])
 
@@ -188,10 +202,15 @@ def result_game():
 @app.route("/api/queue")
 def return_queue():
     return load(open(join(app.config['DATA_DIR'],"matches/queue.json"), "r"))
-
+"""
 @app.route("/api/translator")
 def return_translated():
     return lexxer(request.args.get("prog"))
+"""
 
+@socketio.on('send_maj')
+def handle_send_maj(msg):
+    emit('send_maj', {'data': 'New map data'})
 
-app.run(host = '127.0.0.1', port='5000', debug=True)
+if __name__ == '__main__':
+    socketio.run(app, host='0.0.0.0', port=5000, debug=True)
