@@ -5,5 +5,10 @@ socket.on('connect', () => {
 })
 
 socket.on('maj',(msg) => {
-    zm.textContent = msg.data
+    console.log('Received map data:', msg.data);
+    zm.textContent = msg.data;
 })
+
+socket.on('send_maj', (msg) => {
+    zm.textContent = msg.data;
+});

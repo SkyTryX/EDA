@@ -151,6 +151,7 @@ def combat():
                 if not is_bot:
                     truc += SYMB['free']
         truc += "\n"
+    print('Generated map:', truc)
     try:
         session['code'] =  request.form['code']
     except:
@@ -160,7 +161,7 @@ def combat():
     else:
         code_entrer = False
 
-    socketio.emit('send_maj', {'data': truc})
+    socketio.emit('maj', {'data': truc})
 
     return render_template('combat.html', map=truc, gamemode=session['gamemode'],code=session['code'], code_entrer=code_entrer)
 
@@ -204,7 +205,7 @@ def return_translated():
 
 @socketio.on('send_maj')
 def handle_send_maj(msg):
-    emit('maj', {'data': 'New map data'})
+    emit('send_maj', {'data': 'New map data'})
 
 if __name__ == '__main__':
     socketio.run(app, host='0.0.0.0', port=5000, debug=True)
