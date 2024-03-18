@@ -1,14 +1,12 @@
 from flask import Flask, render_template, request, session, redirect
 from os.path import join, dirname, realpath
 import sqlite3
-from functions.render import load_map_from_csv
-from functions.parser import eda_sharp
+from functions.eda_sharp.eda_python import *
 from uuid import uuid4
 from json import load, dump
 from pathlib import Path
 from functions.display_map import load_map
 from random import randint
-import json
 
 app = Flask(__name__)
 app.config['DATA_DIR'] = join(dirname(realpath(__file__)),'static')
@@ -117,7 +115,7 @@ def queue():
                     matchuuid= str(uuid4())
                     session["match"] = matchuuid
                     with open(join(app.config['DATA_DIR'],f"matches/running/{matchuuid}.json"), "w") as file_match:
-                        dump({"p1":session["uuid"],"p2":other_player,"map":"map","submission1":[], "submission2":[], "winner":None}, file_match)
+                        dump({"p1":session["uuid"],"p2":other_player, "pos_p1": (0, 0), "pos_p2": (1, 1), "shields":[] ,"map":"map","submission1":[], "submission2":[], "winner":None}, file_match)
                     data[session["gamemode"]] = "None"
                     dump(data, file)
     return render_template("queue.html")
@@ -150,15 +148,12 @@ def combat():
                     truc += SYMB['free']
         truc += "\n"
     try:
-        session['code'] =  request.form['code']
+        print("LOAD")
+        session['code'] = compileur(lexxer(request.form['code']))
+        print("CHECK")
     except:
         IndexError
-    if session['code'] != None:
-            code_entrer = True
-    else:
-        code_entrer = False
-
-    return render_template('combat.html', map=truc, gamemode=session['gamemode'],code=session['code'], code_entrer=code_entrer)
+    return render_template('combat.html', map=truc, gamemode=session['gamemode'],code=session['code'], code_entrer=session['code'] != None)
 
 @app.route("/result_game")
 def result_game():
@@ -166,9 +161,9 @@ def result_game():
     cur = con.cursor()
     match = session["match"]
     with open(join(app.config['DATA_DIR'],f"matches/running/{match}.json"), "r") as file:
-        data = json.load(file)
+        data = load(file)
     with open(join(app.config['DATA_DIR'],f"matches/logs/{match}.json"), "w") as file_w:
-        json.dump(data, file_w)
+        dump(data, file_w)
     Path.unlink(join(app.config['DATA_DIR'],f"matches/running/{match}.json"))
     if data["winner"] == session['uuid']:
         win = cur.execute("SELECT win FROM stats where uuid=?;",(session['uuid'], )).fetchone()[0] + 1
@@ -186,7 +181,7 @@ def result_game():
 
     resultuuid= str(uuid4())
     with open(join(app.config['DATA_DIR'],f"matches/results/{resultuuid}.json"), "w") as file:
-        json.dump(data, file)
+        dump(data, file)
 
     return render_template('result_game.html', victoire=victoire, carte=data['map'])
 
@@ -196,7 +191,7 @@ def return_queue():
 
 @app.route("/api/translator")
 def return_translated():
-    return eda_sharp(request.args.get("prog"))
+    return lexxer(request.args.get("prog"))
 
 
 app.run(host = '127.0.0.1', port='5000', debug=True)
