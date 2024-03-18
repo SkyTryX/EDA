@@ -3,6 +3,9 @@ from typing import Literal
 from json import dump, load
 from dataclasses import dataclass
 
+class EdaError(Exception):
+    pass
+
 memory = {0:0, 1:0, 2:[]}
 pos_x = 0
 pos_y = 1
@@ -53,7 +56,7 @@ def shield(tour:int):
             if i != j:
                 memory[shields].append({(memory[pos_x]+i, memory[pos_y]+j):tour})
 
-def load(match:str):
+def loadi(match:str):
     with open(match+".json", "r") as file_read:
         return load(file_read)
 
@@ -133,3 +136,5 @@ def compileur(prog:list[OP]) -> list[tuple]:
         else:
             res.append(parser(instr))
     return res
+
+print(compileur(lexxer("gauche();")))

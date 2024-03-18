@@ -2,15 +2,12 @@ from flask import Flask, render_template, request, session, redirect
 from os.path import join, dirname, realpath
 import sqlite3
 from functions.eda_sharp.eda_python import *
-from functions.render import load_map_from_csv
 from uuid import uuid4
 from json import load, dump
 from pathlib import Path
 from functions.display_map import load_map
 from random import randint
-import json
 from flask_socketio import SocketIO, emit
-import os
 
 
 app = Flask(__name__)
@@ -202,11 +199,7 @@ def result_game():
 @app.route("/api/queue")
 def return_queue():
     return load(open(join(app.config['DATA_DIR'],"matches/queue.json"), "r"))
-"""
-@app.route("/api/translator")
-def return_translated():
-    return lexxer(request.args.get("prog"))
-"""
+
 
 @socketio.on('send_maj')
 def handle_send_maj(msg):
