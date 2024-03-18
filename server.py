@@ -2,17 +2,19 @@ from flask import Flask, render_template, request, session, redirect
 from os.path import join, dirname, realpath
 import sqlite3
 from functions.render import load_map_from_csv
-from functions.parser import eda_sharp
 from uuid import uuid4
 from json import load, dump
 from pathlib import Path
 from functions.display_map import load_map
 from random import randint
 import json
+from flask_socketio import SocketIO, emit
+import os
 
 app = Flask(__name__)
 app.config['DATA_DIR'] = join(dirname(realpath(__file__)),'static')
 app.secret_key = b'99b45274a4b2da7440ab249f17e718688b53b646f3dd57f23a9b29839161749f'
+socketio = SocketIO(app, logger=True, engineio_logger=True)
 
 @app.route("/")
 def start():
@@ -193,10 +195,15 @@ def result_game():
 @app.route("/api/queue")
 def return_queue():
     return load(open(join(app.config['DATA_DIR'],"matches/queue.json"), "r"))
-
+"""
 @app.route("/api/translator")
 def return_translated():
     return eda_sharp(request.args.get("prog"))
+"""
 
+@socketio.on('send_maj')
+def handle_send_maj(msg):
+    emit('maj', {'data': 'New map data'})
 
-app.run(host = '127.0.0.1', port='5000', debug=True)
+if __name__ == '__main__':
+    socketio.run(app, host='0.0.0.0', port=5000, debug=True)
