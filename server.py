@@ -161,6 +161,7 @@ def combat():
     else:
         code_entrer = False
 
+    #balance les info de la map a jour
     socketio.emit('maj', {'data': truc})
 
     return render_template('combat.html', map=truc, gamemode=session['gamemode'],code=session['code'], code_entrer=code_entrer)
