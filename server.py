@@ -5,7 +5,7 @@ from functions.eda_sharp.eda_python import *
 from uuid import uuid4
 from json import load, dump
 from pathlib import Path
-from functions.display_map import load_map
+from functions.display_map import load_map, SYMB
 from random import randint
 from flask_socketio import SocketIO, emit
 
@@ -65,7 +65,6 @@ def inscript():
 def profil():
     con = sqlite3.connect(join(app.config['DATA_DIR'],'database/compte.db'))
     cur = con.cursor()
-    print(session['uuid'])
     pseudo = cur.execute("SELECT pseudo FROM donnee WHERE uuid=?;",(session['uuid'], )).fetchone()[0]
     mail = cur.execute("SELECT mail FROM donnee where uuid=?;",(session['uuid'], )).fetchone()[0]
     mail = f"*******{mail[3:]}"
@@ -99,9 +98,8 @@ def queue():
     création de match : ajoute dans un json sous l'uuid 'matchuuid' le dictionnaire suivant :
     {"p1":session["uuid"],"p2":other_player,"map":"map","submission1":[], "submission2":[], "winner":None}
     """
+    session["pos"] = None
     session["gamemode"] = request.args.get('gamemode')
-    print(session['gamemode'])
-    print(session['uuid'])
     if session["uuid"] != None:
         with open(join(app.config['DATA_DIR'],"matches/queue.json"), "r") as file_read:
             data = load(file_read)
@@ -126,44 +124,47 @@ def queue():
 @app.route("/combat", methods=['POST', 'GET'])
 def combat():
     model = load_map(join(app.config['DATA_DIR'],f'maps/map{randint(1,1)}.csv'))
-    SYMB = {
-        'wall': ' X ',
-        'free': '   ',
-        'bot': [' @ ', ' # ']
-    }
-    w = model['w']
-    h = model['h']
-    mur = model['walls']
-    bots = model['bot']
+    test = None
+    if request.form.get('code') != None:
+        test = compileur(lexxer(request.form['code']))
+        if session.get("pos") == None:
+            memory[pos_x] = model["bot"]["1"][0]
+            memory[pos_y] = model["bot"]["1"][1]
+        else:
+            memory[pos_x] = session["pos"][0]
+            memory[pos_y] = session["pos"][1]
 
-    truc = ""
-    for x in range(w):
-        for y in range(h):
-            if (x, y) in mur:
-                truc += SYMB['wall']
+        for code in test:
+            if code[0].__name__ == "droite" and [session["pos"][1]+1, session["pos"][0]] in model["walls"]:
+                print("SKILL ISSUE")
+            elif code[0].__name__ == "gauche" and [session["pos"][1]-1, session["pos"][0]] in model["walls"]:
+                print("SKILL ISSUE")
+            elif code[0].__name__ == "haut" and [session["pos"][1], session["pos"][0]-1] in model["walls"]:
+                print("SKILL ISSUE")
+            elif code[0].__name__ == "bas" and [session["pos"][1], session["pos"][0]+1] in model["walls"]:
+                print("SKILL ISSUE")
             else:
-                is_bot = False
-                for bot_id, bot_locations in bots.items():
-                    if (x, y) in bot_locations:
-                        truc += SYMB['bot'][int(bot_id) - 1]
-                        is_bot = True
-                if not is_bot:
-                    truc += SYMB['free']
-        truc += "\n"
-    print('Generated map:', truc)
-    try:
-        session['code'] = str(compileur(lexxer(request.form['code'])))
-    except:
-        IndexError
-    if session['code'] != None:
-            code_entrer = True
-    else:
-        code_entrer = False
+                if len(code[1]) != 0:
+                    code[0](code[1][0])
+                else:
+                    code[0]()
+        model["bot"]["1"][1] = memory[pos_x]
+        model["bot"]["1"][0] = memory[pos_y]
+        session["pos"] = (memory[pos_x], memory[pos_y]) 
 
-    #balance les info de la map a jour
-    socketio.emit('maj', {'data': truc})
-
-    return render_template('combat.html', map=truc, gamemode=session['gamemode'],code=session['code'], code_entrer=code_entrer)
+    map_str = ""
+    for x in range(model['w']):
+        for y in range(model['h']):
+            if [x, y] in model['walls']:
+                map_str += SYMB['wall']
+            elif [x, y] == model["bot"]["1"]:
+                map_str += SYMB['bot'][0]
+            elif [x, y] == model["bot"]["2"]:
+                map_str += SYMB['bot'][1]
+            else:
+                map_str += SYMB['free']
+        map_str += "\n"
+    return render_template('combat.html', map=map_str, gamemode=session['gamemode'], code_entrer=(test != None),)
 
 @app.route("/result_game")
 def result_game():

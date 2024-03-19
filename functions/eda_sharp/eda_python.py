@@ -7,8 +7,8 @@ class EdaError(Exception):
     pass
 
 memory = {0:0, 1:0, 2:[]}
-pos_x = 0
-pos_y = 1
+pos_x = 1
+pos_y = 0
 shields = 2
 
 def read_args(code:str)->tuple[str, int]:
@@ -35,7 +35,6 @@ class OP:
 
 
 def gauche():
-    print("GAUCHE")
     memory[pos_x] -= 1
 
 def droite():
@@ -75,7 +74,6 @@ def lexxer(code:str)->list[OP]:
     repeating:bool = False
     repeat_list:list[list] = []
     for i,c in enumerate(code):
-        print(repeat_list)
         temp += c
         if temp == "shield(":
             a = read_args(code[i+1:])
