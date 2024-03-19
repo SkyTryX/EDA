@@ -1,12 +1,16 @@
 <!DOCTYPE html>
 <html>
+
 <head>
     <title>Combat Map</title>
-    <link rel="stylesheet" type="text/css"href="/static/css/combat.css">
+    <link rel="stylesheet" type="text/css" href="/static/css/combat.css">
     <link rel="stylesheet" type="text/css" href="/static/css/style.css">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js" integrity="sha512-q/dWJ3kcmjBLU4Qc47E4A9kTB4m3wuTY7vkFJDTZKjTs8jhyGQnaUrxa0Ytd0ssMZhbNua9hE+E7Qv1j+DyZwA==" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js"
+        integrity="sha512-q/dWJ3kcmjBLU4Qc47E4A9kTB4m3wuTY7vkFJDTZKjTs8jhyGQnaUrxa0Ytd0ssMZhbNua9hE+E7Qv1j+DyZwA=="
+        crossorigin="anonymous"></script>
     <script src="{{url_for('static', filename='app.js')}}"></script>
 </head>
+
 <body>
     <div class="map-container">
         <pre id="zone_map" style="white-space: pre-wrap; overflow: auto;">
@@ -26,7 +30,8 @@
             votre ancien code est {{code}}
             <br><br>
             {% endif %}
-        </div>  
+    </div>
     </form>
 </body>
+
 </html>

@@ -117,7 +117,7 @@ def parser(instr:OP):
         case "wait":
             return (wait, [])
         case "shield":
-            return (wait, [instr.args[0]])
+            return (shield, [instr.args[0]])
         case "repeat":
             res = parser(instr.args[1][0])
             instr.args[1].pop(0)

@@ -152,9 +152,7 @@ def combat():
         truc += "\n"
     print('Generated map:', truc)
     try:
-        print("LOAD")
-        session['code'] = compileur(lexxer(request.form['code']))
-        print("CHECK")
+        session['code'] = str(compileur(lexxer(request.form['code'])))
     except:
         IndexError
     if session['code'] != None:
