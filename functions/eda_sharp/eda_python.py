@@ -75,6 +75,7 @@ def lexxer(code:str)->list[OP]:
     repeating:bool = False
     repeat_list:list[list] = []
     for i,c in enumerate(code):
+        print(repeat_list)
         temp += c
         if temp == "shield(":
             a = read_args(code[i+1:])
@@ -137,4 +138,53 @@ def compileur(prog:list[OP]) -> list[tuple]:
             res.append(parser(instr))
     return res
 
-print(compileur(lexxer("gauche();")))
+
+def lexxer2(code:list[str|int], res:list[OP]= [], repeat_list:list[list] = []) -> list[OP]:
+    if len(code) == 0:
+        return res
+    in_repeat = False
+    if code[0] in ["gauche", "droite", "bas", "haut", "wait", "shield"]:
+        for i,c in enumerate(code):
+            opened = False
+            args = 0
+            if c == "(":
+                opened = True
+            elif type(c) == int and opened:
+                args = args*10+int(c)
+            elif c == ")":
+                if in_repeat:
+                    repeat_list[len(repeat_list)-1].append(OP(op_code=code[0], args=(args, [])))
+                else:
+                    res.append(OP(op_code=code[0], args=(args, [])))
+                return lexxer2(code[i:], res, repeat_list)
+    elif code[0] == "repeat":
+        in_repeat = True
+        repeat_list.append([code[2]])
+    elif code[0] == "}":
+        if len(repeat_list) >= 2:
+            repeat_list[len(repeat_list)-1].append(OP(op_code="repeat", args=(repeat_list[len(repeat_list)-1][0], repeat_list[len(repeat_list)-1][1:])))
+        else:
+            res.append(OP(op_code="repeat", args=(repeat_list[len(repeat_list)-1][0], repeat_list[len(repeat_list)-1][1:])))
+        in_repeat = False
+        repeat_list.pop(len(repeat_list)-1)
+    return lexxer2(code[1:], res, repeat_list)
+    
+
+def spliter(code:str)->list[str|int]:
+    """
+    Returns the code as a list of instructions, that can get compiled
+    """
+    prog:list[str] = []
+    temp:str = ""
+    for c in code:
+        temp += c
+        if temp in ["gauche", "shield", "droite", "bas", "haut", "wait", "repeat", "(", ")", "{", "}", ";"]:
+            prog.append(temp)
+            temp = ""
+        elif temp.isdigit():
+            if type(prog[len(prog)-1]) == int:
+                prog[len(prog)-1] = prog[len(prog)-1]*10+int(temp)
+            else:
+                prog.append(int(temp))   
+            temp = ""  
+    return prog
