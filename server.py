@@ -45,7 +45,7 @@ def connect():
 def inscription():
     return render_template('inscription.html')
 
-@app.route("/inscript", methods=['POST'])
+@app.route("/inscript", methods=['POST', 'GET'])
 def inscript():
     con = sqlite3.connect(join(app.config['DATA_DIR'],'database/compte.db'))
     cur = con.cursor()
@@ -130,27 +130,20 @@ def combat():
         if session.get("pos") == None:
             memory[pos_x] = model["bot"]["1"][0]
             memory[pos_y] = model["bot"]["1"][1]
+            session["pos"] = [memory[pos_x], memory[pos_y]]
         else:
             memory[pos_x] = session["pos"][0]
             memory[pos_y] = session["pos"][1]
 
         for code in test:
-            if code[0].__name__ == "droite" and [session["pos"][1]+1, session["pos"][0]] in model["walls"]:
-                print("SKILL ISSUE")
-            elif code[0].__name__ == "gauche" and [session["pos"][1]-1, session["pos"][0]] in model["walls"]:
-                print("SKILL ISSUE")
-            elif code[0].__name__ == "haut" and [session["pos"][1], session["pos"][0]-1] in model["walls"]:
-                print("SKILL ISSUE")
-            elif code[0].__name__ == "bas" and [session["pos"][1], session["pos"][0]+1] in model["walls"]:
-                print("SKILL ISSUE")
-            else:
+            if not (code[0].__name__ == "droite" and ([session["pos"][1], session["pos"][0]+1] in model["walls"] or session["pos"][0] == 10)) or (code[0].__name__ == "gauche" and ([session["pos"][1],session["pos"][0]-1] in model["walls"] or session["pos"][0] == 0)) or (code[0].__name__ == "haut" and ([session["pos"][1]-1, session["pos"][0]] in model["walls"] or session["pos"][1] == 0)) or (code[0].__name__ == "bas" and ([session["pos"][1]+1, session["pos"][0]] in model["walls"] or session["pos"][1] == 15)):
                 if len(code[1]) != 0:
                     code[0](code[1][0])
                 else:
                     code[0]()
         model["bot"]["1"][1] = memory[pos_x]
         model["bot"]["1"][0] = memory[pos_y]
-        session["pos"] = (memory[pos_x], memory[pos_y]) 
+        session["pos"] = [memory[pos_x], memory[pos_y]]
 
     map_str = ""
     for x in range(model['w']):

@@ -7,8 +7,8 @@ class EdaError(Exception):
     pass
 
 memory = {0:0, 1:0, 2:[]}
-pos_x = 1
-pos_y = 0
+pos_x = 0
+pos_y = 1
 shields = 2
 
 def read_args(code:str)->tuple[str, int]:
