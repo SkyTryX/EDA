@@ -8,6 +8,10 @@
   z-index: 1000;
 }
 
+.yellow {
+  color: yellow;
+}
+
 body {
   display: flex;
   justify-content: center;

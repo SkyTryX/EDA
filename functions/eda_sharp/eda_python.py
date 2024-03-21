@@ -34,17 +34,21 @@ class OP:
 
 
 
-def gauche():
-    memory[pos_x] -= 1
+def gauche(walls):
+    if not [memory[pos_y],memory[pos_x]-1] in walls or memory[pos_x] == 0:
+        memory[pos_x] -= 1
 
-def droite():
-    memory[pos_x] += 1
+def droite(walls):
+    if not [memory[pos_y], memory[pos_x]+1] in walls or memory[pos_x] == 10:
+        memory[pos_x] += 1
 
-def bas():
-    memory[pos_y] += 1
+def bas(walls):
+    if not [memory[pos_y]-1, memory[pos_x]] in walls or memory[pos_y] == 0:
+        memory[pos_y] += 1
 
-def haut():
-    memory[pos_y] -= 1
+def haut(walls):
+    if not [memory[pos_y]+1, memory[pos_x]] in walls or memory[pos_y] == 15:
+        memory[pos_y] -= 1
 
 def wait():
     pass
@@ -52,8 +56,8 @@ def wait():
 def shield(tour:int):
     for i in range(-1, 2):
         for j in range(-1, 2):
-            if i != j:
-                memory[shields].append({(memory[pos_x]+i, memory[pos_y]+j):tour})
+            if j != 0 or i != 0:
+                memory[shields].append({(memory[pos_y]+j, memory[pos_x]+i):tour})
 
 def loadi(match:str):
     with open(match+".json", "r") as file_read:

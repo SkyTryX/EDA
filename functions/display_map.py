@@ -3,7 +3,8 @@ import csv
 SYMB = {
     'wall': ' X ',
     'free': '   ',
-    'bot': [' @ ', ' # ']
+    'bot': [' @ ', ' # '],
+    'shield': [' $ ', ' . ']
 }
 
 def load_map(map_csv):

@@ -19,6 +19,7 @@
     </div>
     <div class="test">
         Vous jouer en {{ gamemode }} <br><br>
+        Vous êtes {%if session.get("bot") == "1"%} @ {% else %} # {% endif %}
         <form action="/combat?gamemode={{gamemode}}" method="POST">
             <label for="story">CMD:</label>
             <div class="textArea">

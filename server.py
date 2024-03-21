@@ -99,6 +99,7 @@ def queue():
     {"p1":session["uuid"],"p2":other_player,"map":"map","submission1":[], "submission2":[], "winner":None}
     """
     session["pos"] = None
+    session["bot"] = None
     session["gamemode"] = request.args.get('gamemode')
     if session["uuid"] != None:
         with open(join(app.config['DATA_DIR'],"matches/queue.json"), "r") as file_read:
@@ -107,6 +108,7 @@ def queue():
                 data[session["gamemode"]] = session["uuid"]
                 with open(join(app.config['DATA_DIR'],"matches/queue.json"), "w") as file:
                     dump(data, file)
+                    session["bot"] = "1"
             elif data[session["gamemode"]][0] == session["uuid"][0]:
                 return redirect("/")
             else:
@@ -119,6 +121,7 @@ def queue():
                         dump({"p1":session["uuid"],"p2":other_player, "pos_p1": (0, 0), "pos_p2": (1, 1), "shields":[] ,"map":"map","submission1":[], "submission2":[], "winner":None}, file_match)
                     data[session["gamemode"]] = "None"
                     dump(data, file)
+                    session["bot"] = "2"
     return render_template("queue.html")
 
 @app.route("/combat", methods=['POST', 'GET'])
@@ -128,36 +131,45 @@ def combat():
     if request.form.get('code') != None:
         test = compileur(lexxer(request.form['code']))
         if session.get("pos") == None:
-            memory[pos_x] = model["bot"]["1"][0]
-            memory[pos_y] = model["bot"]["1"][1]
+            memory[pos_x] = model["bot"][session["bot"]][0]
+            memory[pos_y] = model["bot"][session["bot"]][1]
             session["pos"] = [memory[pos_x], memory[pos_y]]
         else:
             memory[pos_x] = session["pos"][0]
             memory[pos_y] = session["pos"][1]
 
         for code in test:
-            if not (code[0].__name__ == "droite" and ([session["pos"][1], session["pos"][0]+1] in model["walls"] or session["pos"][0] == 10)) or (code[0].__name__ == "gauche" and ([session["pos"][1],session["pos"][0]-1] in model["walls"] or session["pos"][0] == 0)) or (code[0].__name__ == "haut" and ([session["pos"][1]-1, session["pos"][0]] in model["walls"] or session["pos"][1] == 0)) or (code[0].__name__ == "bas" and ([session["pos"][1]+1, session["pos"][0]] in model["walls"] or session["pos"][1] == 15)):
-                if len(code[1]) != 0:
-                    code[0](code[1][0])
-                else:
-                    code[0]()
-        model["bot"]["1"][1] = memory[pos_x]
-        model["bot"]["1"][0] = memory[pos_y]
+            if len(code[1]) != 0:
+                code[0](code[1][0])
+            else:
+                code[0](model["walls"])
+        model["bot"][session["bot"]][1] = memory[pos_x]
+        model["bot"][session["bot"]][0] = memory[pos_y]
         session["pos"] = [memory[pos_x], memory[pos_y]]
 
     map_str = ""
     for x in range(model['w']):
         for y in range(model['h']):
+            has_shield = False
+            for s in memory[shields]:
+                if (x, y) == list(s.keys())[0]:
+                    has_shield = True
             if [x, y] in model['walls']:
-                map_str += SYMB['wall']
+                if has_shield:
+                    map_str += SYMB['shield'][0]
+                else:
+                    map_str += SYMB['wall']
             elif [x, y] == model["bot"]["1"]:
                 map_str += SYMB['bot'][0]
             elif [x, y] == model["bot"]["2"]:
                 map_str += SYMB['bot'][1]
             else:
-                map_str += SYMB['free']
+                if has_shield:
+                    map_str += SYMB['shield'][1]
+                else:
+                    map_str += SYMB['free']
         map_str += "\n"
-    return render_template('combat.html', map=map_str, gamemode=session['gamemode'], code_entrer=(test != None),)
+    return render_template('combat.html', map=map_str, gamemode=session['gamemode'], code_entrer=(test != None), bot=session["bot"])
 
 @app.route("/result_game")
 def result_game():
