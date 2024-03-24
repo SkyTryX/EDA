@@ -19,7 +19,6 @@ socketio = SocketIO(app, logger=True, engineio_logger=True)
 @app.route("/")
 def start():
     session['uuid'] = None
-    session['code'] = None
     return render_template('index.html')
 
 @app.route("/index")
@@ -125,9 +124,10 @@ def queue():
                     data[request.args.get('gamemode')] = "None"
                     dump(data, file)
                     session["bot"] = "2"
+                    return redirect("/combat")
     else:
         return redirect("/")
-    return render_template("queue.html")
+    return render_template("queue.html", gamemode=request.args.get("gamemode"))
 
 @app.route("/combat", methods=['POST', 'GET'])
 def combat():
@@ -141,24 +141,38 @@ def combat():
             data["pos_p"+session["bot"]] = model["bot"][session["bot"]]
         memory[pos_x] = data["pos_p"+session["bot"]][0]
         memory[pos_y] = data["pos_p"+session["bot"]][1]
-        for code in cmds:
-            if len(code[1]) != 0:
-                code[0](code[1][0])
-            else:
-                code[0](model["walls"])
+        in_shield = False
+        for s in data["shields"]:
+            if s["bot"] == session["bot"]:
+                in_shield = True
+                break
+        if not in_shield:
+            for code in cmds:
+                if len(code[1]) != 0:
+                    code[0](code[1][0])
+                else:
+                    code[0](model["walls"])
+                if code.__name__ == "shield":
+                    break
         data["pos_p"+session["bot"]] = [memory[pos_x], memory[pos_y]]
         model["bot"][session["bot"]] = [memory[pos_y], memory[pos_x]]
         ennemy = '1' if session['bot'] == '2' else '2'
         model["bot"][ennemy] = [data["pos_p"+ennemy][1], data["pos_p"+ennemy][0]]
 
+        pop_indexes = []
         for i in range(len(data["shields"])):
-            data["shields"][i]["tour"] -= 1
-        data["shields"] = [s for s in data["shields"] if s["tour"] > 0]
+            if data["shields"][i]["bot"] == session["bot"]:
+                data["shields"][i]["tour"] -= 1
+            if data["shields"][i]["tour"] == 0:
+                pop_indexes.append(i)
+        pop_indexes.reverse()
+        for index in pop_indexes:
+            data["shields"].pop(index)
         for s in memory[shields]:
             data["shields"].append({"coords":s[0],"tour":int(s[1]),"bot":session["bot"]})
+        memory[shields] = []
         with open(join(app.config['DATA_DIR'],f"matches/running/{session['match']}.json"), "w") as match_file:
             dump(data, match_file)        
-
     with open(join(app.config['DATA_DIR'],f"matches/running/{session['match']}.json"), "r") as match_file:
             data = load(match_file)
     map_str = ""
