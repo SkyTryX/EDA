@@ -141,35 +141,29 @@ def compileur(prog:list[OP]) -> list[tuple]:
     return res
 
 
-def lexxer2(code:list[str|int], res:list[OP]= [], repeat_list:list[list] = []) -> list[OP]:
+def lexxer2(code:list[str|int], res:list[OP]= [], repeat_list:list =[], repeating:int=0) -> list[OP]:
     if len(code) == 0:
         return res
-    in_repeat = False
-    if code[0] in ["gauche", "droite", "bas", "haut", "wait", "shield"]:
-        for i,c in enumerate(code):
-            opened = False
-            args = 0
-            if c == "(":
-                opened = True
-            elif type(c) == int and opened:
-                args = args*10+int(c)
-            elif c == ")":
-                if in_repeat:
-                    repeat_list[len(repeat_list)-1].append(OP(op_code=code[0], args=(args, [])))
-                else:
-                    res.append(OP(op_code=code[0], args=(args, [])))
-                return lexxer2(code[i:], res, repeat_list)
-    elif code[0] == "repeat":
-        in_repeat = True
-        repeat_list.append([code[2]])
-    elif code[0] == "}":
-        if len(repeat_list) >= 2:
-            repeat_list[len(repeat_list)-1].append(OP(op_code="repeat", args=(repeat_list[len(repeat_list)-1][0], repeat_list[len(repeat_list)-1][1:])))
+    if code[0] in ["gauche", "droite", "bas", "haut", "wait"]:
+        if repeating != 0:
+            repeat_list.append(OP(code[0], (0, [])))
         else:
-            res.append(OP(op_code="repeat", args=(repeat_list[len(repeat_list)-1][0], repeat_list[len(repeat_list)-1][1:])))
-        in_repeat = False
-        repeat_list.pop(len(repeat_list)-1)
-    return lexxer2(code[1:], res, repeat_list)
+            res.append(OP(code[0], (0, [])))
+        return lexxer2(code[3:], res, repeat_list, repeating)
+    elif code[0] == "shield":
+        if repeating != 0:
+            repeat_list.append(OP(code[0], (code[2], [])))
+        else:
+            res.append(OP(code[0], (code[2], [])))
+        return lexxer2(code[4:], res, repeat_list, repeating)
+    elif code[0] == "repeat":    
+        repeat_list = [code[2]]
+        return lexxer2(code[2:], res, repeat_list, repeating+1)
+    elif code[0] == "}":
+        res.append(OP("repeat", (repeat_list[0], repeat_list[1:])))
+        return lexxer2(code[1:], res, [], repeating-1)
+    else:
+        return lexxer2(code[1:], res, repeat_list, repeating)
     
 
 def spliter(code:str)->list[str|int]:

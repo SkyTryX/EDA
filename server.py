@@ -120,7 +120,7 @@ def queue():
                     data[request.args.get('gamemode')] = "None"
                    
                     with open(join(app.config['DATA_DIR'],f"matches/running/{session['match']}.json"), "w") as file_match:
-                        dump({"p1":session["uuid"],"p2":other_player, "pos_p1": [0, 0], "pos_p2": [10, 14], "shields":[] ,"map":"map", "winner":None}, file_match)
+                        dump({"p1":session["uuid"],"p2":other_player, "pos_p1": [0, 0], "pos_p2": [10, 15], "shields":[] ,"map":"map", "winner":None}, file_match)
                     data[request.args.get('gamemode')] = "None"
                     dump(data, file)
                     session["bot"] = "2"
@@ -135,6 +135,7 @@ def combat():
     cmds = None
     if request.form.get('code') != None:
         cmds = compileur(lexxer(request.form['code']))
+        print(request.form['code'])
         with open(join(app.config['DATA_DIR'],f"matches/running/{session['match']}.json"), "r") as match_file:
             data = load(match_file)
         if data["pos_p"+session["bot"]] == None:
@@ -148,11 +149,17 @@ def combat():
                 break
         if not in_shield:
             for code in cmds:
+                print(code[0].__name__)
                 if len(code[1]) != 0:
                     code[0](code[1][0])
                 else:
                     code[0](model["walls"])
-                if code.__name__ == "shield":
+                if [memory[pos_y], memory[pos_x]] in data["shields"]:
+                    data["winner"] = data["p"+('1' if session['bot'] == '2' else '2')]
+                    with open(join(app.config['DATA_DIR'],f"matches/running/{session['match']}.json"), "w") as match_file:
+                        dump(data, match_file)   
+                    return redirect("/result_game")
+                if code[0].__name__ == "shield":
                     break
         data["pos_p"+session["bot"]] = [memory[pos_x], memory[pos_y]]
         model["bot"][session["bot"]] = [memory[pos_y], memory[pos_x]]
