@@ -150,15 +150,23 @@ def combat():
         model["bot"][session["bot"]] = [memory[pos_y], memory[pos_x]]
         ennemy = '1' if session['bot'] == '2' else '2'
         model["bot"][ennemy] = [data["pos_p"+ennemy][1], data["pos_p"+ennemy][0]]
+
+        for i in range(len(data["shields"])):
+            data["shields"][i]["tour"] -= 1
+        data["shields"] = [s for s in data["shields"] if s["tour"] > 0]
+        for s in memory[shields]:
+            data["shields"].append({"coords":s[0],"tour":int(s[1]),"bot":session["bot"]})
         with open(join(app.config['DATA_DIR'],f"matches/running/{session['match']}.json"), "w") as match_file:
             dump(data, match_file)        
 
+    with open(join(app.config['DATA_DIR'],f"matches/running/{session['match']}.json"), "r") as match_file:
+            data = load(match_file)
     map_str = ""
     for x in range(model['w']):
         for y in range(model['h']):
             has_shield = False
-            for s in memory[shields]:
-                if (x, y) == list(s.keys())[0]:
+            for s in data["shields"]:
+                if [x, y] == s["coords"]:
                     has_shield = True
             if [x, y] in model['walls']:
                 if has_shield:

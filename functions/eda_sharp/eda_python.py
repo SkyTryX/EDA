@@ -57,7 +57,7 @@ def shield(tour:int):
     for i in range(-1, 2):
         for j in range(-1, 2):
             if j != 0 or i != 0:
-                memory[shields].append({(memory[pos_y]+j, memory[pos_x]+i):tour})
+                memory[shields].append([[memory[pos_y]+j, memory[pos_x]+i],tour])
 
 def loadi(match:str):
     with open(match+".json", "r") as file_read:
