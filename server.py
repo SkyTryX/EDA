@@ -1,13 +1,14 @@
 from flask import Flask, render_template, request, session, redirect
 from os.path import join, dirname, realpath
 import sqlite3
-from functions.eda_sharp.eda_python import *
 from uuid import uuid4
 from json import load, dump
 from pathlib import Path
 from functions.display_map import load_map, SYMB
 from random import randint
 from flask_socketio import SocketIO, emit
+from functions.eda_sharp.eda_python import *
+
 
 
 app = Flask(__name__)
@@ -98,54 +99,59 @@ def queue():
     création de match : ajoute dans un json sous l'uuid 'matchuuid' le dictionnaire suivant :
     {"p1":session["uuid"],"p2":other_player,"map":"map","submission1":[], "submission2":[], "winner":None}
     """
-    session["pos"] = None
     session["bot"] = None
-    session["gamemode"] = request.args.get('gamemode')
-    if session["uuid"] != None:
+    if session.get("uuid") != None:
         with open(join(app.config['DATA_DIR'],"matches/queue.json"), "r") as file_read:
             data = load(file_read)
-            if data[session["gamemode"]] == "None":
-                data[session["gamemode"]] = session["uuid"]
+            if data[request.args.get('gamemode')] == "None":
                 with open(join(app.config['DATA_DIR'],"matches/queue.json"), "w") as file:
+                    matchuuid= str(uuid4())
+                    data[request.args.get('gamemode')] = [session["uuid"], matchuuid]
                     dump(data, file)
-                    session["bot"] = "1"
-            elif data[session["gamemode"]][0] == session["uuid"][0]:
+                session["bot"] = "1"
+                session["match"] = matchuuid
+
+            elif data[request.args.get('gamemode')][0] == session["uuid"][0]:
                 return redirect("/")
+            
             else:
                 with open(join(app.config['DATA_DIR'],"matches/queue.json"), "w") as file:
-                    other_player = data[session["gamemode"]]
-                    data[session["gamemode"]] = "None"
-                    matchuuid= str(uuid4())
-                    session["match"] = matchuuid
-                    with open(join(app.config['DATA_DIR'],f"matches/running/{matchuuid}.json"), "w") as file_match:
-                        dump({"p1":session["uuid"],"p2":other_player, "pos_p1": (0, 0), "pos_p2": (1, 1), "shields":[] ,"map":"map","submission1":[], "submission2":[], "winner":None}, file_match)
-                    data[session["gamemode"]] = "None"
+                    other_player = data[request.args.get('gamemode')][0]
+                    session["match"] = data[request.args.get('gamemode')][1]
+                    data[request.args.get('gamemode')] = "None"
+                   
+                    with open(join(app.config['DATA_DIR'],f"matches/running/{session['match']}.json"), "w") as file_match:
+                        dump({"p1":session["uuid"],"p2":other_player, "pos_p1": [0, 0], "pos_p2": [10, 14], "shields":[] ,"map":"map", "winner":None}, file_match)
+                    data[request.args.get('gamemode')] = "None"
                     dump(data, file)
                     session["bot"] = "2"
+    else:
+        return redirect("/")
     return render_template("queue.html")
 
 @app.route("/combat", methods=['POST', 'GET'])
 def combat():
     model = load_map(join(app.config['DATA_DIR'],f'maps/map{randint(1,1)}.csv'))
-    test = None
+    cmds = None
     if request.form.get('code') != None:
-        test = compileur(lexxer(request.form['code']))
-        if session.get("pos") == None:
-            memory[pos_x] = model["bot"][session["bot"]][0]
-            memory[pos_y] = model["bot"][session["bot"]][1]
-            session["pos"] = [memory[pos_x], memory[pos_y]]
-        else:
-            memory[pos_x] = session["pos"][0]
-            memory[pos_y] = session["pos"][1]
-
-        for code in test:
+        cmds = compileur(lexxer(request.form['code']))
+        with open(join(app.config['DATA_DIR'],f"matches/running/{session['match']}.json"), "r") as match_file:
+            data = load(match_file)
+        if data["pos_p"+session["bot"]] == None:
+            data["pos_p"+session["bot"]] = model["bot"][session["bot"]]
+        memory[pos_x] = data["pos_p"+session["bot"]][0]
+        memory[pos_y] = data["pos_p"+session["bot"]][1]
+        for code in cmds:
             if len(code[1]) != 0:
                 code[0](code[1][0])
             else:
                 code[0](model["walls"])
-        model["bot"][session["bot"]][1] = memory[pos_x]
-        model["bot"][session["bot"]][0] = memory[pos_y]
-        session["pos"] = [memory[pos_x], memory[pos_y]]
+        data["pos_p"+session["bot"]] = [memory[pos_x], memory[pos_y]]
+        model["bot"][session["bot"]] = [memory[pos_y], memory[pos_x]]
+        ennemy = '1' if session['bot'] == '2' else '2'
+        model["bot"][ennemy] = [data["pos_p"+ennemy][1], data["pos_p"+ennemy][0]]
+        with open(join(app.config['DATA_DIR'],f"matches/running/{session['match']}.json"), "w") as match_file:
+            dump(data, match_file)        
 
     map_str = ""
     for x in range(model['w']):
@@ -169,7 +175,7 @@ def combat():
                 else:
                     map_str += SYMB['free']
         map_str += "\n"
-    return render_template('combat.html', map=map_str, gamemode=session['gamemode'], code_entrer=(test != None), bot=session["bot"])
+    return render_template('combat.html', map=map_str, code_entrer=(cmds != None), bot=session["bot"])
 
 @app.route("/result_game")
 def result_game():

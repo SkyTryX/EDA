@@ -50,7 +50,7 @@ def haut(walls):
     if not [memory[pos_y]+1, memory[pos_x]] in walls or memory[pos_y] == 15:
         memory[pos_y] -= 1
 
-def wait():
+def wait(walls):
     pass
 
 def shield(tour:int):
