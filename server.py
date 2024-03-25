@@ -6,7 +6,6 @@ from json import load, dump
 from pathlib import Path
 from functions.display_map import load_map, SYMB
 from random import randint
-from flask_socketio import SocketIO
 from functions.eda import *
 from functions.verifie_code import *
 
@@ -14,15 +13,11 @@ from functions.verifie_code import *
 app = Flask(__name__)
 app.config['DATA_DIR'] = join(dirname(realpath(__file__)),'static')
 app.secret_key = b'99b45274a4b2da7440ab249f17e718688b53b646f3dd57f23a9b29839161749f'
-socketio = SocketIO(app, logger=True, engineio_logger=True)
 
 @app.route("/")
 def start():
     session['uuid'] = None
-    return render_template('index.html')
-
-@app.route("/index")
-def index():
+    session["kick"] = False
     return render_template('index.html')
 
 @app.route("/connection")
@@ -113,7 +108,7 @@ def queue():
                     data[request.args.get('gamemode')] = "None"
                    
                     with open(join(app.config['DATA_DIR'],f"matches/running/{session['match']}.json"), "w") as file_match:
-                        dump({"p1":session["uuid"],"p2":other_player, "pos_p1": [0, 0], "pos_p2": [10, 15], "shields":[] ,"map":"map", "winner":None}, file_match)
+                        dump({"p1":session["uuid"],"p2":other_player, "pos_p1": [0, 0], "pos_p2": [15, 10], "p1_finit":False, "p2_finit":False, "p1_submitted":False, "p2_submitted":False, "shields":[], "dispo":True, "winner":None}, file_match)
                     data[request.args.get('gamemode')] = "None"
                     dump(data, file)
                     session["bot"] = "2"
@@ -122,66 +117,79 @@ def queue():
         return redirect("/")
     return render_template("queue.html", gamemode=request.args.get("gamemode"))
 
+model = load_map(join(app.config['DATA_DIR'],f'maps/map{randint(1,1)}.csv'))
+                  
+
 @app.route("/combat", methods=['POST', 'GET'])
 def combat():
-    model = load_map(join(app.config['DATA_DIR'],f'maps/map{randint(1,1)}.csv'))
-    cmds = None
-    if request.form.get('code') != None: # SI UN CODE A ETE ENVOYE
-        cmds = compileur(lexxer(request.form['code']))
-        with open(join(app.config['DATA_DIR'],f"matches/running/{session['match']}.json"), "r") as match_file:
-            data = load(match_file) # ON PREND LES INFOS SUR LE MATCH
-
-        # ON INITIALISE LA POSITION DU BOT POUR L'INTERPRETEUR
-        memory[pos_x] = data["pos_p"+session["bot"]][0]
-        memory[pos_y] = data["pos_p"+session["bot"]][1]
-
-        # CHECK POUR VOIR SI LE JOUEUR EST EN SHIELD
-        in_shield = False
-        for s in data["shields"]:
-            if s["bot"] == session["bot"]:
-                in_shield = True
-                break
-
-        # SI IL N'EST PAS EN SHIELD
-        if not in_shield:
-            # EXECUTION DU CODE
-            for code in cmds:
-                if len(code[1]) != 0:
-                    code[0](code[1][0])
-                else:
-                    code[0](model["walls"])
-                if code[0].__name__ == "shield":
-                    break # ARRET D'EXECUTION SI ON A SHIELD (A CHANGER PROB)
-
-        data["pos_p"+session["bot"]] = [memory[pos_x], memory[pos_y]]
-        model["bot"][session["bot"]] = [memory[pos_y], memory[pos_x]]
-        ennemy = '1' if session['bot'] == '2' else '2'
-        model["bot"][ennemy] = [data["pos_p"+ennemy][1], data["pos_p"+ennemy][0]]
-
-        #CHECK POUR VOIR SI UN SHIELD A EXPIRE
-        pop_indexes = []
-        for i in range(len(data["shields"])):
-            if data["shields"][i]["bot"] == session["bot"]:
-                data["shields"][i]["tour"] -= 1
-            if data["shields"][i]["tour"] == 0:
-                pop_indexes.append(i)
-        pop_indexes.reverse()
-        for index in pop_indexes:
-            data["shields"].pop(index)
-        for s in memory[shields]:
-            data["shields"].append({"coords":s[0],"tour":int(s[1]),"bot":session["bot"]})
-        memory[shields] = []
-
-        # ON ACTUALISE LE JSON AVEC TOUT LES CHANGEMENTS
-        with open(join(app.config['DATA_DIR'],f"matches/running/{session['match']}.json"), "w") as match_file:
-            dump(data, match_file)
+    if session["kick"]:
+        session["kick"] = False
+        pass # ARRET DE JEU
+    ennemy = '1' if session['bot'] == '2' else '2'
+    with open(join(app.config['DATA_DIR'],f"matches/running/{session['match']}.json"), "r") as match_file:
+        data_match = load(match_file) 
+    with open(join(app.config['DATA_DIR'],f"matches/running/{session['match']}.json"), "w") as match_file:
+        data_match[f"p{session['bot']}_submitted"] = True
+        dump(data_match, match_file)
     
-    # CREATION DE LA MAP
+    while True:
+        with open(join(app.config['DATA_DIR'],f"matches/running/{session['match']}.json"), "r") as match_file:
+            data_match = load(match_file) 
+            if data_match[f"p{ennemy}_submitted"]: break
+
+    cmds = None
+    if request.form.get('code') != None:
+    
+        cmds = compileur(lexxer(request.form['code']))
+
+        for func in cmds:
+            
+            while True:
+                with open(join(app.config['DATA_DIR'],f"matches/running/{session['match']}.json"), "r") as check_dispo:
+                    data_check = load(check_dispo)
+                    if data_check["dispo"] == (session["bot"] == "1") or data_match[f"p{ennemy}_finit"]:
+                        break
+                    
+            in_shield = False
+            for s in data_match["shields"]:
+                if s["bot"] == session["bot"]:
+                    in_shield = True
+                    break 
+            
+            if in_shield:
+                pop_indexes = []
+                for i in range(len(data_match["shields"])):
+                    if data_match["shields"][i]["bot"] == session["bot"]:
+                        data_match["shields"][i]["tour"] -= 1
+                        if data_match["shields"][i]["tour"] == 0:
+                            pop_indexes.append(i)
+                pop_indexes.reverse()
+                for index in pop_indexes:
+                    data_match["shields"].pop(index)
+
+            else:
+                if len(func[1]) != 0:
+                    func[0](func[1][0])
+                else:
+                    func[0](model["walls"])
+            data_match[f"pos_p{session['bot']}"] = [memory[pos_x], memory[pos_y]]
+            
+
+        data_match["p1_finit"] = True
+        
+        with open(join(app.config['DATA_DIR'],f"matches/running/{session['match']}.json"), "w") as match_file:
+            dump(data_match, match_file)
+
+        while True:
+            with open(join(app.config['DATA_DIR'],f"matches/running/{session['match']}.json"), "r") as check_dispo:
+                if load(check_dispo)[f"p{ennemy}_finit"]:
+                    break
+        
     map_str = ""
     for x in range(model['w']):
         for y in range(model['h']):
             has_shield = False
-            for s in data["shields"]:
+            for s in data_match["shields"]:
                 if [x, y] == s["coords"]:
                     has_shield = True
             if [x, y] in model['walls']:
@@ -189,9 +197,9 @@ def combat():
                     map_str += SYMB['shield'][0]
                 else:
                     map_str += SYMB['wall']
-            elif [x, y] == model["bot"]["1"]:
+            elif [x, y] == data_match["pos_p1"]:
                 map_str += SYMB['bot'][0]
-            elif [x, y] == model["bot"]["2"]:
+            elif [x, y] == data_match["pos_p2"]:
                 map_str += SYMB['bot'][1]
             else:
                 if has_shield:
@@ -236,4 +244,4 @@ def verify_code():
     return jsonify({'result': resultat[0], 'error': resultat[1]})
 
 if __name__ == '__main__':
-    socketio.run(app, host='0.0.0.0', port=5000, debug=True)
+    app.run(host='127.0.0.1', port=5000, debug=True)
