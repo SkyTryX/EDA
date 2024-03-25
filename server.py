@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, session, redirect
+from flask import Flask, render_template, request, session, redirect, jsonify
 from os.path import join, dirname, realpath
 import sqlite3
 from uuid import uuid4
@@ -8,7 +8,7 @@ from functions.display_map import load_map, SYMB
 from random import randint
 from flask_socketio import SocketIO, emit
 from functions.eda_sharp.eda_python import *
-
+from functions.verifie_code import *
 
 
 app = Flask(__name__)
@@ -205,6 +205,18 @@ def combat():
                     map_str += SYMB['free']
         map_str += "\n"
     return render_template('combat.html', map=map_str, code_entrer=(cmds != None), bot=session["bot"])
+
+@app.route('/verify', methods=['POST'])
+def verify_code():
+    code = request.json['code']
+    resultat = eda_linter(spliter(code))
+    print(resultat)
+    valeur1 = resultat[0]
+    valeur2 = resultat[1]
+    result = valeur1
+    error = valeur2
+    return jsonify({'result': result, 'error': error})
+
 
 @app.route("/result_game")
 def result_game():

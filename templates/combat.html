@@ -28,7 +28,18 @@
             </div>
             <input type="submit" value="Lancer"><br>
     </div>
+            {% if code_entrer %}
+            votre ancien code est {{code}}
+            <br><br>
+            {% endif %} 
     </form>
+
+    <!-- message d'erreur et conseils -->
+    <div id="alert" class="warning">Votre code n'est pas valide !</div>
+    <div id="error-message" class="warning"></div>
+    
+    <script src="{{ url_for('static', filename='verif.js') }}"></script>
+    </div> 
 </body>
 
 </html>
