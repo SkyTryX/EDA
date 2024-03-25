@@ -6,8 +6,8 @@ from json import load, dump
 from pathlib import Path
 from functions.display_map import load_map, SYMB
 from random import randint
-from flask_socketio import SocketIO, emit
-from functions.eda_sharp.eda_python import *
+from flask_socketio import SocketIO
+from functions.eda import *
 from functions.verifie_code import *
 
 
@@ -91,18 +91,11 @@ def jouer():
 
 @app.route("/queue", methods=['GET'])
 def queue():
-    """
-    Système de queue indépendante du niveau, ajoute l'uuid du joueur qui cherche une partie dans 'gamemode' si aucune uuid n'est
-    présente, si il y a une uuid ( et donc un joueur qui cherche ), lance un match avec 'other_player' avec l'uuid de l'autre joueur
-    et remet la case 'gamemode' vide
-    création de match : ajoute dans un json sous l'uuid 'matchuuid' le dictionnaire suivant :
-    {"p1":session["uuid"],"p2":other_player,"map":"map","submission1":[], "submission2":[], "winner":None}
-    """
     session["bot"] = None
-    if session.get("uuid") != None:
+    if session.get("uuid") != None: # SI LE JOUEUR EXISTE
         with open(join(app.config['DATA_DIR'],"matches/queue.json"), "r") as file_read:
             data = load(file_read)
-            if data[request.args.get('gamemode')] == "None":
+            if data[request.args.get('gamemode')] == "None": # SI PERSONNE NE QUEUE
                 with open(join(app.config['DATA_DIR'],"matches/queue.json"), "w") as file:
                     matchuuid= str(uuid4())
                     data[request.args.get('gamemode')] = [session["uuid"], matchuuid]
@@ -110,10 +103,10 @@ def queue():
                 session["bot"] = "1"
                 session["match"] = matchuuid
 
-            elif data[request.args.get('gamemode')][0] == session["uuid"][0]:
+            elif data[request.args.get('gamemode')][0] == session["uuid"][0]: # SI UNE MEME PERSONNE QUEUE 2 FOIS
                 return redirect("/")
             
-            else:
+            else: # SI LE JOUEUR QUEUE DANS UNE QUEUE DEJA PLEINE
                 with open(join(app.config['DATA_DIR'],"matches/queue.json"), "w") as file:
                     other_player = data[request.args.get('gamemode')][0]
                     session["match"] = data[request.args.get('gamemode')][1]
@@ -133,39 +126,39 @@ def queue():
 def combat():
     model = load_map(join(app.config['DATA_DIR'],f'maps/map{randint(1,1)}.csv'))
     cmds = None
-    if request.form.get('code') != None:
+    if request.form.get('code') != None: # SI UN CODE A ETE ENVOYE
         cmds = compileur(lexxer(request.form['code']))
-        print(request.form['code'])
         with open(join(app.config['DATA_DIR'],f"matches/running/{session['match']}.json"), "r") as match_file:
-            data = load(match_file)
-        if data["pos_p"+session["bot"]] == None:
-            data["pos_p"+session["bot"]] = model["bot"][session["bot"]]
+            data = load(match_file) # ON PREND LES INFOS SUR LE MATCH
+
+        # ON INITIALISE LA POSITION DU BOT POUR L'INTERPRETEUR
         memory[pos_x] = data["pos_p"+session["bot"]][0]
         memory[pos_y] = data["pos_p"+session["bot"]][1]
+
+        # CHECK POUR VOIR SI LE JOUEUR EST EN SHIELD
         in_shield = False
         for s in data["shields"]:
             if s["bot"] == session["bot"]:
                 in_shield = True
                 break
+
+        # SI IL N'EST PAS EN SHIELD
         if not in_shield:
+            # EXECUTION DU CODE
             for code in cmds:
-                print(code[0].__name__)
                 if len(code[1]) != 0:
                     code[0](code[1][0])
                 else:
                     code[0](model["walls"])
-                if [memory[pos_y], memory[pos_x]] in data["shields"]:
-                    data["winner"] = data["p"+('1' if session['bot'] == '2' else '2')]
-                    with open(join(app.config['DATA_DIR'],f"matches/running/{session['match']}.json"), "w") as match_file:
-                        dump(data, match_file)   
-                    return redirect("/result_game")
                 if code[0].__name__ == "shield":
-                    break
+                    break # ARRET D'EXECUTION SI ON A SHIELD (A CHANGER PROB)
+
         data["pos_p"+session["bot"]] = [memory[pos_x], memory[pos_y]]
         model["bot"][session["bot"]] = [memory[pos_y], memory[pos_x]]
         ennemy = '1' if session['bot'] == '2' else '2'
         model["bot"][ennemy] = [data["pos_p"+ennemy][1], data["pos_p"+ennemy][0]]
 
+        #CHECK POUR VOIR SI UN SHIELD A EXPIRE
         pop_indexes = []
         for i in range(len(data["shields"])):
             if data["shields"][i]["bot"] == session["bot"]:
@@ -178,10 +171,12 @@ def combat():
         for s in memory[shields]:
             data["shields"].append({"coords":s[0],"tour":int(s[1]),"bot":session["bot"]})
         memory[shields] = []
+
+        # ON ACTUALISE LE JSON AVEC TOUT LES CHANGEMENTS
         with open(join(app.config['DATA_DIR'],f"matches/running/{session['match']}.json"), "w") as match_file:
-            dump(data, match_file)        
-    with open(join(app.config['DATA_DIR'],f"matches/running/{session['match']}.json"), "r") as match_file:
-            data = load(match_file)
+            dump(data, match_file)
+    
+    # CREATION DE LA MAP
     map_str = ""
     for x in range(model['w']):
         for y in range(model['h']):
@@ -206,55 +201,39 @@ def combat():
         map_str += "\n"
     return render_template('combat.html', map=map_str, code_entrer=(cmds != None), bot=session["bot"])
 
-@app.route('/verify', methods=['POST'])
-def verify_code():
-    code = request.json['code']
-    resultat = eda_linter(spliter(code))
-    print(resultat)
-    valeur1 = resultat[0]
-    valeur2 = resultat[1]
-    result = valeur1
-    error = valeur2
-    return jsonify({'result': result, 'error': error})
-
-
 @app.route("/result_game")
 def result_game():
     con = sqlite3.connect(join(app.config['DATA_DIR'],'database/compte.db'))
     cur = con.cursor()
     match = session["match"]
+
+    # DEPLACEMENT DU FICHIER JSON
     with open(join(app.config['DATA_DIR'],f"matches/running/{match}.json"), "r") as file:
         data = load(file)
     with open(join(app.config['DATA_DIR'],f"matches/logs/{match}.json"), "w") as file_w:
         dump(data, file_w)
     Path.unlink(join(app.config['DATA_DIR'],f"matches/running/{match}.json"))
+
+    # AJOUT DES STATISTIQUES (+1 VICTOIRE)
     if data["winner"] == session['uuid']:
         win = cur.execute("SELECT win FROM stats where uuid=?;",(session['uuid'], )).fetchone()[0] + 1
-        cur.execute("UPDATE stats SET win=? WHERE uuid=? ;",( win, session['uuid'], )).fetchone()[0]
+        cur.execute("UPDATE stats SET win=? WHERE uuid=?;",( win, session['uuid'], )).fetchone()[0]
         victoire = True
     else:
         win = cur.execute("SELECT loss FROM stats where uuid=?;",(session['uuid'], )).fetchone()[0] + 1
-        cur.execute("UPDATE stats SET loss=? WHERE uuid=? ;",( win, session['uuid'], )).fetchone()[0]
+        cur.execute("UPDATE stats SET loss=? WHERE uuid=?;",( win, session['uuid'], )).fetchone()[0]
         victoire = False
-
-    data["bots"]["bot1"] = tuple(data["bots"]["bot1"])
-    data["bots"]["bot2"] = tuple(data["bots"]["bot2"])
-
-
-    resultuuid= str(uuid4())
-    with open(join(app.config['DATA_DIR'],f"matches/results/{resultuuid}.json"), "w") as file:
-        dump(data, file)
-
-    return render_template('result_game.html', victoire=victoire, carte=data['map'])
+    con.commit()
+    return render_template('result_game.html', victoire=victoire)
 
 @app.route("/api/queue")
 def return_queue():
     return load(open(join(app.config['DATA_DIR'],"matches/queue.json"), "r"))
 
-
-@socketio.on('send_maj')
-def handle_send_maj(msg):
-    emit('send_maj', {'data': 'New map data'})
+@app.route('/verify', methods=['POST'])
+def verify_code():
+    resultat = eda_linter(spliter(request.json['code']))
+    return jsonify({'result': resultat[0], 'error': resultat[1]})
 
 if __name__ == '__main__':
     socketio.run(app, host='0.0.0.0', port=5000, debug=True)
