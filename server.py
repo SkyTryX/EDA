@@ -1,13 +1,13 @@
 from flask import Flask, render_template, request, session, redirect, jsonify
 from os.path import join, dirname, realpath
 import sqlite3
-from functions.eda_sharp.eda_python import *
 from uuid import uuid4
 from json import load, dump
 from pathlib import Path
-from functions.display_map import load_map
+from functions.display_map import load_map, SYMB
 from random import randint
 from flask_socketio import SocketIO, emit
+from functions.eda_sharp.eda_python import *
 from functions.verifie_code import *
 
 
@@ -19,7 +19,6 @@ socketio = SocketIO(app, logger=True, engineio_logger=True)
 @app.route("/")
 def start():
     session['uuid'] = None
-    session['code'] = None
     return render_template('index.html')
 
 @app.route("/index")
@@ -46,7 +45,7 @@ def connect():
 def inscription():
     return render_template('inscription.html')
 
-@app.route("/inscript", methods=['POST'])
+@app.route("/inscript", methods=['POST', 'GET'])
 def inscript():
     con = sqlite3.connect(join(app.config['DATA_DIR'],'database/compte.db'))
     cur = con.cursor()
@@ -66,7 +65,6 @@ def inscript():
 def profil():
     con = sqlite3.connect(join(app.config['DATA_DIR'],'database/compte.db'))
     cur = con.cursor()
-    print(session['uuid'])
     pseudo = cur.execute("SELECT pseudo FROM donnee WHERE uuid=?;",(session['uuid'], )).fetchone()[0]
     mail = cur.execute("SELECT mail FROM donnee where uuid=?;",(session['uuid'], )).fetchone()[0]
     mail = f"*******{mail[3:]}"
@@ -100,73 +98,113 @@ def queue():
     création de match : ajoute dans un json sous l'uuid 'matchuuid' le dictionnaire suivant :
     {"p1":session["uuid"],"p2":other_player,"map":"map","submission1":[], "submission2":[], "winner":None}
     """
-    session["gamemode"] = request.args.get('gamemode')
-    print(session['gamemode'])
-    print(session['uuid'])
-    if session["uuid"] != None:
+    session["bot"] = None
+    if session.get("uuid") != None:
         with open(join(app.config['DATA_DIR'],"matches/queue.json"), "r") as file_read:
             data = load(file_read)
-            if data[session["gamemode"]] == "None":
-                data[session["gamemode"]] = session["uuid"]
+            if data[request.args.get('gamemode')] == "None":
                 with open(join(app.config['DATA_DIR'],"matches/queue.json"), "w") as file:
+                    matchuuid= str(uuid4())
+                    data[request.args.get('gamemode')] = [session["uuid"], matchuuid]
                     dump(data, file)
-            elif data[session["gamemode"]][0] == session["uuid"][0]:
+                session["bot"] = "1"
+                session["match"] = matchuuid
+
+            elif data[request.args.get('gamemode')][0] == session["uuid"][0]:
                 return redirect("/")
+            
             else:
                 with open(join(app.config['DATA_DIR'],"matches/queue.json"), "w") as file:
-                    other_player = data[session["gamemode"]]
-                    data[session["gamemode"]] = "None"
-                    matchuuid= str(uuid4())
-                    session["match"] = matchuuid
-                    with open(join(app.config['DATA_DIR'],f"matches/running/{matchuuid}.json"), "w") as file_match:
-                        dump({"p1":session["uuid"],"p2":other_player, "pos_p1": (0, 0), "pos_p2": (1, 1), "shields":[] ,"map":"map","submission1":[], "submission2":[], "winner":None}, file_match)
-                    data[session["gamemode"]] = "None"
+                    other_player = data[request.args.get('gamemode')][0]
+                    session["match"] = data[request.args.get('gamemode')][1]
+                    data[request.args.get('gamemode')] = "None"
+                   
+                    with open(join(app.config['DATA_DIR'],f"matches/running/{session['match']}.json"), "w") as file_match:
+                        dump({"p1":session["uuid"],"p2":other_player, "pos_p1": [0, 0], "pos_p2": [10, 15], "shields":[] ,"map":"map", "winner":None}, file_match)
+                    data[request.args.get('gamemode')] = "None"
                     dump(data, file)
-    return render_template("queue.html")
+                    session["bot"] = "2"
+                    return redirect("/combat")
+    else:
+        return redirect("/")
+    return render_template("queue.html", gamemode=request.args.get("gamemode"))
 
 @app.route("/combat", methods=['POST', 'GET'])
 def combat():
     model = load_map(join(app.config['DATA_DIR'],f'maps/map{randint(1,1)}.csv'))
-    SYMB = {
-        'wall': ' X ',
-        'free': '   ',
-        'bot': [' @ ', ' # ']
-    }
-    w = model['w']
-    h = model['h']
-    mur = model['walls']
-    bots = model['bot']
+    cmds = None
+    if request.form.get('code') != None:
+        cmds = compileur(lexxer(request.form['code']))
+        print(request.form['code'])
+        with open(join(app.config['DATA_DIR'],f"matches/running/{session['match']}.json"), "r") as match_file:
+            data = load(match_file)
+        if data["pos_p"+session["bot"]] == None:
+            data["pos_p"+session["bot"]] = model["bot"][session["bot"]]
+        memory[pos_x] = data["pos_p"+session["bot"]][0]
+        memory[pos_y] = data["pos_p"+session["bot"]][1]
+        in_shield = False
+        for s in data["shields"]:
+            if s["bot"] == session["bot"]:
+                in_shield = True
+                break
+        if not in_shield:
+            for code in cmds:
+                print(code[0].__name__)
+                if len(code[1]) != 0:
+                    code[0](code[1][0])
+                else:
+                    code[0](model["walls"])
+                if [memory[pos_y], memory[pos_x]] in data["shields"]:
+                    data["winner"] = data["p"+('1' if session['bot'] == '2' else '2')]
+                    with open(join(app.config['DATA_DIR'],f"matches/running/{session['match']}.json"), "w") as match_file:
+                        dump(data, match_file)   
+                    return redirect("/result_game")
+                if code[0].__name__ == "shield":
+                    break
+        data["pos_p"+session["bot"]] = [memory[pos_x], memory[pos_y]]
+        model["bot"][session["bot"]] = [memory[pos_y], memory[pos_x]]
+        ennemy = '1' if session['bot'] == '2' else '2'
+        model["bot"][ennemy] = [data["pos_p"+ennemy][1], data["pos_p"+ennemy][0]]
 
-    truc = ""
-    for x in range(w):
-        for y in range(h):
-            if (x, y) in mur:
-                truc += SYMB['wall']
+        pop_indexes = []
+        for i in range(len(data["shields"])):
+            if data["shields"][i]["bot"] == session["bot"]:
+                data["shields"][i]["tour"] -= 1
+            if data["shields"][i]["tour"] == 0:
+                pop_indexes.append(i)
+        pop_indexes.reverse()
+        for index in pop_indexes:
+            data["shields"].pop(index)
+        for s in memory[shields]:
+            data["shields"].append({"coords":s[0],"tour":int(s[1]),"bot":session["bot"]})
+        memory[shields] = []
+        with open(join(app.config['DATA_DIR'],f"matches/running/{session['match']}.json"), "w") as match_file:
+            dump(data, match_file)        
+    with open(join(app.config['DATA_DIR'],f"matches/running/{session['match']}.json"), "r") as match_file:
+            data = load(match_file)
+    map_str = ""
+    for x in range(model['w']):
+        for y in range(model['h']):
+            has_shield = False
+            for s in data["shields"]:
+                if [x, y] == s["coords"]:
+                    has_shield = True
+            if [x, y] in model['walls']:
+                if has_shield:
+                    map_str += SYMB['shield'][0]
+                else:
+                    map_str += SYMB['wall']
+            elif [x, y] == model["bot"]["1"]:
+                map_str += SYMB['bot'][0]
+            elif [x, y] == model["bot"]["2"]:
+                map_str += SYMB['bot'][1]
             else:
-                is_bot = False
-                for bot_id, bot_locations in bots.items():
-                    if (x, y) in bot_locations:
-                        truc += SYMB['bot'][int(bot_id) - 1]
-                        is_bot = True
-                if not is_bot:
-                    truc += SYMB['free']
-        truc += "\n"
-    print('Generated map:', truc)
-    try:
-        print("LOAD")
-        session['code'] = compileur(lexxer(request.form['code']))
-        print("CHECK")
-    except:
-        IndexError
-    if session['code'] != None:
-            code_entrer = True
-    else:
-        code_entrer = False
-
-    #balance les info de la map a jour
-    socketio.emit('maj', {'data': truc})
-
-    return render_template('combat.html', map=truc, gamemode=session['gamemode'],code=session['code'], code_entrer=code_entrer)
+                if has_shield:
+                    map_str += SYMB['shield'][1]
+                else:
+                    map_str += SYMB['free']
+        map_str += "\n"
+    return render_template('combat.html', map=map_str, code_entrer=(cmds != None), bot=session["bot"])
 
 @app.route('/verify', methods=['POST'])
 def verify_code():
