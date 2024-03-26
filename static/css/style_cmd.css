@@ -43,4 +43,9 @@ a {
   font-weight: bold;
 }
 
+#temps_restant{
+  font-weight: bold;
+  color: rgb(175, 0, 161);
+}
+
 

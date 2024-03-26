@@ -235,5 +235,22 @@ def verify_code():
     resultat = eda_linter(spliter(request.json['code']))
     return jsonify({'result': resultat[0], 'error': resultat[1]})
 
+@app.route('/refresh', methods=['POST'])
+def refresh():
+    session['kick'] = True
+    return render_template('index.html')
+
+@app.route('/fin_timer', methods=['POST'])
+def fin_timer():
+    text = request.json['text']
+    session['last_code'] = text
+    return '', 204
+
+@app.route('/bouton_click', methods=['POST'])
+def bouton_click():
+    text = request.form['code']
+    session['last_code'] = text
+    return '', 204
+
 if __name__ == '__main__':
     socketio.run(app, host='0.0.0.0', port=5000, debug=True)
