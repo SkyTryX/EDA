@@ -2,17 +2,20 @@ from flask import Flask, render_template, request, session, redirect, jsonify
 from os.path import join, dirname, realpath
 import sqlite3
 from uuid import uuid4
-from json import load, dump
+from json import load, dump, decoder
 from pathlib import Path
 from functions.display_map import load_map, SYMB
 from random import randint
 from functions.eda import *
 from functions.verifie_code import *
-
+from werkzeug.middleware.proxy_fix import ProxyFix
 
 app = Flask(__name__)
 app.config['DATA_DIR'] = join(dirname(realpath(__file__)),'static')
 app.secret_key = b'99b45274a4b2da7440ab249f17e718688b53b646f3dd57f23a9b29839161749f'
+app.wsgi_app = ProxyFix(
+    app.wsgi_app, x_for=1, x_proto=1, x_host=1, x_prefix=1
+)
 
 @app.route("/")
 def start():
@@ -117,38 +120,46 @@ def queue():
         return redirect("/")
     return render_template("queue.html", gamemode=request.args.get("gamemode"))
 
-model = load_map(join(app.config['DATA_DIR'],f'maps/map{randint(1,1)}.csv'))
                   
 
 @app.route("/combat", methods=['POST', 'GET'])
 def combat():
     if session["kick"]:
         session["kick"] = False
-        pass # ARRET DE JEU
+        return redirect("/")
+    
     ennemy = '1' if session['bot'] == '2' else '2'
     with open(join(app.config['DATA_DIR'],f"matches/running/{session['match']}.json"), "r") as match_file:
         data_match = load(match_file) 
     with open(join(app.config['DATA_DIR'],f"matches/running/{session['match']}.json"), "w") as match_file:
+        data_match[f"p{session['bot']}_finit"] = False
         data_match[f"p{session['bot']}_submitted"] = True
         dump(data_match, match_file)
     
-    while True:
-        with open(join(app.config['DATA_DIR'],f"matches/running/{session['match']}.json"), "r") as match_file:
-            data_match = load(match_file) 
-            if data_match[f"p{ennemy}_submitted"]: break
+    model = load_map(join(app.config['DATA_DIR'],f'maps/map{randint(1,1)}.csv'))
 
     cmds = None
     if request.form.get('code') != None:
+
+        while True:
+            try:
+                with open(join(app.config['DATA_DIR'],f"matches/running/{session['match']}.json"), "r") as match_file:
+                    if load(match_file)[f"p{ennemy}_submitted"]: break
+            except decoder.JSONDecodeError:
+                print("DECODER ERROR l150")
     
         cmds = compileur(lexxer(request.form['code']))
 
         for func in cmds:
             
             while True:
-                with open(join(app.config['DATA_DIR'],f"matches/running/{session['match']}.json"), "r") as check_dispo:
-                    data_check = load(check_dispo)
-                    if data_check["dispo"] == (session["bot"] == "1") or data_match[f"p{ennemy}_finit"]:
-                        break
+                try:
+                    with open(join(app.config['DATA_DIR'],f"matches/running/{session['match']}.json"), "r") as check_dispo:
+                        if load(check_dispo)["dispo"] == (session["bot"] == "1") or data_match[f"p{ennemy}_finit"]:
+                            break
+                except decoder.JSONDecodeError:
+                    print("DECODER ERROR l163")
+
                     
             in_shield = False
             for s in data_match["shields"]:
@@ -172,18 +183,27 @@ def combat():
                     func[0](func[1][0])
                 else:
                     func[0](model["walls"])
-            data_match[f"pos_p{session['bot']}"] = [memory[pos_x], memory[pos_y]]
-            
-
-        data_match["p1_finit"] = True
+            data_match[f"pos_p{session['bot']}"] = [memory[pos_y], memory[pos_x]]
+            data_match["dispo"] = not (session["bot"] == "1")
+            with open(join(app.config['DATA_DIR'],f"matches/running/{session['match']}.json"), "w") as setdispo:
+                    dump(data_match, setdispo)
         
-        with open(join(app.config['DATA_DIR'],f"matches/running/{session['match']}.json"), "w") as match_file:
-            dump(data_match, match_file)
+        data_match[f"p{session['bot']}_finit"] = True
+        with open(join(app.config['DATA_DIR'],f"matches/running/{session['match']}.json"), "w") as setdispo:
+            dump(data_match, setdispo)
+            print(f"FAIT {session['bot']}")
 
         while True:
             with open(join(app.config['DATA_DIR'],f"matches/running/{session['match']}.json"), "r") as check_dispo:
-                if load(check_dispo)[f"p{ennemy}_finit"]:
-                    break
+                try:
+                    if load(check_dispo)[f"p{ennemy}_finit"]:
+                        break
+                except decoder.JSONDecodeError:
+                    print("DECODER ERROR l203")
+
+    data_match[f"p{session['bot']}_submitted"] = False
+    with open(join(app.config['DATA_DIR'],f"matches/running/{session['match']}.json"), "w") as match_file:
+        dump(data_match, match_file)
         
     map_str = ""
     for x in range(model['w']):
