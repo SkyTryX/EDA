@@ -123,7 +123,7 @@ def leave_queue():
     with open(join(app.config['DATA_DIR'],"matches/queue.json"), "r") as file:
         data = load(file)
     if data[request.args.get("type")][0] == session["uuid"]:
-        data[request.args.get("type")] = None
+        data[request.args.get("type")] = "None"
         with open(join(app.config['DATA_DIR'],"matches/queue.json"), "w") as file:
             dump(data, file)
     return redirect("/")
