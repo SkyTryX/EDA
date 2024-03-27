@@ -4,13 +4,48 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+    <title>Queueing</title>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Press+Start+2P">
     <link rel="icon" type="image/x-icon" href="/static/css/favicon.ico">
+    <style>
+        body {
+            background-color: #000;
+            color: rgb(175, 0, 161); /* Couleur violette */
+            font-family: 'Press Start 2P', cursive;
+            text-align: center;
+            margin: 0; /* Supprimer les marges par défaut */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            height: 100vh;
+        }
+
+        a {
+            color: rgb(175, 0, 161);
+            text-decoration: none;
+            font-family: 'Press Start 2P', cursive;
+            margin: 10px; /* Ajout d'un espace autour de chaque lien */
+        }
+
+        a:hover {
+            text-decoration: underline;
+        }
+
+        b {
+            color: rgb(175, 0, 161);
+            font-family: 'Press Start 2P', cursive;
+            font-size: 24px;
+            margin-bottom: 20px; /* Ajout d'un espace en bas de l'élément b */
+        }
+    </style>
 </head>
 
 <body>
-    Queueing in {{gamemode}}
+    <b>Queueing in {{gamemode}}</b>
+    <br><br>
     <script src="{{url_for('static', filename = 'queue_check.js')}}"></script>
+    <br><br>
     <a href="/leave_queue?type=combat">Quitter</a>
 </body>
 
