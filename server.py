@@ -6,7 +6,7 @@ from json import load, dump, decoder
 from pathlib import Path
 from functions.display_map import load_map, SYMB
 from random import randint
-from functions.eda import *
+from functions.eda_sharp import *
 from functions.verifie_code import eda_linter
 from time import sleep
 from werkzeug.middleware.proxy_fix import ProxyFix
@@ -20,7 +20,6 @@ app.wsgi_app = ProxyFix(
 
 @app.route("/")
 def start():
-    session['uuid'] = None
     return render_template('index.html')
 
 @app.route("/connection")
@@ -34,7 +33,7 @@ def connection_error():
     logging = cur.execute("SELECT mail, mdp FROM donnee WHERE mail=? AND mdp=?;",(request.form['mail'], request.form['mdp'])).fetchall()
     if len(logging) != 0:
         session['uuid'] = cur.execute("SELECT uuid FROM donnee WHERE mail=?;",(request.form['mail'],)).fetchone()[0]
-        return render_template("index.html")
+        return redirect("/")
     else:
         return render_template("connection.html", erreur = True)
 
@@ -118,7 +117,15 @@ def queue():
         return redirect("/")
     return render_template("queue.html", gamemode=request.args.get("gamemode"))
 
-                  
+@app.route("/leave_queue")
+def leave_queue():
+    with open(join(app.config['DATA_DIR'],"matches/queue.json"), "r") as file:
+        data = load(file)
+    if data[request.args.get("type")][0] == session["uuid"]:
+        data[request.args.get("type")] = None
+        with open(join(app.config['DATA_DIR'],"matches/queue.json"), "w") as file:
+            dump(data, file)
+    return redirect("/")
 
 @app.route("/combat")
 def combat():
