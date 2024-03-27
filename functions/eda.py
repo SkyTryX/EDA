@@ -1,25 +1,6 @@
 from __future__ import annotations
 from typing import Literal
-from json import dump, load
 from dataclasses import dataclass
-
-class EdaError(Exception):
-    pass
-
-memory = {0:0, 1:0, 2:[]}
-pos_x = 0
-pos_y = 1
-shields = 2
-
-def read_args(code:str)->tuple[str, int]:
-    res = [""]
-    for _,c in enumerate(code):
-        if c == ")":
-            return res
-        elif c == ",":
-            res.append("")
-        elif c != " ":
-            res[len(res)-1] += c
 
 OP_CODE = Literal['REPEAT', 'GAUCHE', 'DROITE', 'BAS', 'HAUT' 'IFTHENELSE', 'WAIT', 'SHIELD']
 
@@ -32,42 +13,53 @@ class OP:
     op_code: OP_CODE 
     args: tuple[int, list[OP]]
 
-def gauche(walls):
-    if not [memory[pos_y],memory[pos_x]-1] in walls or memory[pos_x] == 0:
-        memory[pos_x] -= 1
+pos_x = 0
+pos_y = 1
+shields = 2
 
-def droite(walls):
-    if not [memory[pos_y], memory[pos_x]+1] in walls or memory[pos_x] == 10:
-        memory[pos_x] += 1
+class EdaExecutor():
+    
 
-def bas(walls):
-    if not [memory[pos_y]-1, memory[pos_x]] in walls or memory[pos_y] == 0:
-        memory[pos_y] += 1
+    def __init__(self, x, y, shields) -> None:
+        self.memory = {0:x, 1:y, 2:shields}
+        
+    def gauche(self, walls, i):
+        if not [self.memory[pos_y],self.memory[pos_x]-i] in walls or self.memory[pos_x] == 0:
+            self.memory[pos_x] -= i
 
-def haut(walls):
-    if not [memory[pos_y]+1, memory[pos_x]] in walls or memory[pos_y] == 15:
-        memory[pos_y] -= 1
+    def droite(self, walls, i):
+        if not [self.memory[pos_y], self.memory[pos_x]+i] in walls or self.memory[pos_x] == 10:
+            self.memory[pos_x] += i
 
-def wait(walls):
-    pass
+    def bas(self, walls, i):
+        if not [self.memory[pos_y]-i, self.memory[pos_x]] in walls or self.memory[pos_y] == 0:
+            self.memory[pos_y] += i
 
-def shield(tour:int):
-    for i in range(-1, 2):
-        for j in range(-1, 2):
-            if j != 0 or i != 0:
-                memory[shields].append([[memory[pos_y]+j, memory[pos_x]+i],tour])
+    def haut(self, walls, i):
+        if not [self.memory[pos_y]+i, self.memory[pos_x]] in walls or self.memory[pos_y] == 15:
+            self.memory[pos_y] -= i
 
-def loadi(match:str):
-    with open(match+".json", "r") as file_read:
-        return load(file_read)
+    def wait(self, walls, i):
+        pass
 
-def save(p:str, match:str, data:dict):
-    data["pos_"+p]= [memory[pos_x], memory[pos_y]]
-    with open(match+".json", "w") as file_write:
-        dump(data, file_write)
+    def shield(self, walls, tour:int):
+        for i in range(-1, 2):
+            for j in range(-1, 2):
+                if j != 0 or i != 0:
+                    self.memory[shields].append([[self.memory[pos_y]+j, self.memory[pos_x]+i],tour])
 
 
-def lexxer(code:str)->list[OP]:
+def read_args(code:str)->tuple[str, int]:
+    res = [""]
+    for _,c in enumerate(code):
+        if c == ")":
+            return res
+        elif c == ",":
+            res.append("")
+        elif c != " ":
+            res[len(res)-1] += c
+
+def lexxer2(code:str)->list[OP]:
     """
     Returns the code as a list of instructions, that can get compiled
     """
@@ -77,17 +69,12 @@ def lexxer(code:str)->list[OP]:
     repeat_list:list[list] = []
     for i,c in enumerate(code):
         temp += c
-        if temp == "shield(":
+        if temp in ["shield(","gauche(", "droite(", "bas(", "haut(", "wait("]:
             a = read_args(code[i+1:])
             if repeating:
                 repeat_list[len(repeat_list)-1].append(OP(op_code='shield', args=(a[0], [])))
             else:
                 prog.append(OP(op_code='shield', args=(a[0], [])))
-        elif temp in ["gauche()", "droite()", "bas()", "haut()", "wait()"]:
-            if repeating:
-                repeat_list[len(repeat_list)-1].append(OP(op_code=temp.removesuffix("()"), args=(0, [])))
-            else:
-                prog.append(OP(op_code=temp.removesuffix("()"), args=(0, [])))
         elif c in ["{",";"]:
             temp = ""
         elif temp == "repeat(":
@@ -113,17 +100,12 @@ def lexxer(code:str)->list[OP]:
     repeating:bool = False
     for i,c in enumerate(code):
         temp += c
-        if temp == "shield(":
+        if temp in ["shield(","gauche(", "droite(", "bas(", "haut(", "wait("]:
             a = read_args(code[i+1:])
             if repeating:
-                prog[len(prog)-1].args[1].append(OP(op_code='shield', args=(int(a[0]), [])))
+                prog[len(prog)-1].args[1].append(OP(op_code=temp.removesuffix("("), args=(int(a[0]), [])))
             else:
-                prog.append(OP(op_code='shield', args=(a[0], [])))
-        elif temp in ["gauche()", "droite()", "bas()", "haut()", "wait()"]:
-            if repeating:
-                prog[len(prog)-1].args[1].append(OP(op_code=temp.removesuffix("()"), args=(0, [])))
-            else:
-                prog.append(OP(op_code=temp.removesuffix("()"), args=(0, [])))
+                prog.append(OP(op_code=temp.removesuffix("("), args=(a[0], [])))
         elif c in ["{",";"]:
             temp = ""
         elif temp == "repeat(":
@@ -138,37 +120,37 @@ def lexxer(code:str)->list[OP]:
             temp = ""
     return prog
 
-def parser(instr:OP):
+def parser(instr:OP, interpreter:EdaExecutor):
     match instr.op_code:
         case "gauche":
-            return (gauche, [])
+            return (interpreter.gauche, [instr.args[0]])
         case "droite":
-            return (droite, [])
+            return (interpreter.droite, [instr.args[0]])
         case "haut":
-            return (haut, [])
+            return (interpreter.haut, [instr.args[0]])
         case "bas":
-            return (bas, [])
+            return (interpreter.bas, [instr.args[0]])
         case "wait":
-            return (wait, [])
+            return (interpreter.wait, [instr.args[0]])
         case "shield":
-            return (shield, [instr.args[0]])
+            return (interpreter.shield, [instr.args[0]])
         case "repeat":
             res = parser(instr.args[1][0])
             instr.args[1].pop(0)
             return res
 
 
-def compileur(prog:list[OP]) -> list[tuple]:
+def compileur(prog:list[OP], interpreteur:EdaExecutor) -> list[tuple]:
     res = []
     for instr in prog:
         if instr.op_code == "repeat":
             repeat = []
             while len(instr.args[1]) != 0:
-                repeat.append(parser(instr))
+                repeat.append(parser(instr, interpreteur))
             for i in range(int(instr.args[0])):
                 res += repeat
         else:
-            res.append(parser(instr))
+            res.append(parser(instr, interpreteur))
     return res
 
 def spliter(code:str)->list[str|int]:

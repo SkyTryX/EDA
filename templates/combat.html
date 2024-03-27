@@ -5,11 +5,7 @@
     <title>Combat Map</title>
     <link rel="stylesheet" type="text/css" href="/static/css/combat.css">
     <link rel="stylesheet" type="text/css" href="/static/css/style.css">
-    <link rel="stylesheet" href="{{ url_for('static', filename='style_cmd.css') }}">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js"
-        integrity="sha512-q/dWJ3kcmjBLU4Qc47E4A9kTB4m3wuTY7vkFJDTZKjTs8jhyGQnaUrxa0Ytd0ssMZhbNua9hE+E7Qv1j+DyZwA=="
-        crossorigin="anonymous"></script>
-    <script src="{{url_for('static', filename='app.js')}}"></script>
+    <link rel="stylesheet" href="static/css/style_cmd.css">
 </head>
 
 <body>
@@ -21,30 +17,30 @@
     <div class="test">
         Vous jouer en {{ gamemode }} <br><br>
         Vous êtes {%if session.get("bot") == "1"%} @ {% else %} # {% endif %}
-        <form action="/combat" method="POST">
+        <form action="/combat/next-turn" method="POST">
             <label for="story">CMD:</label>
             <div class="textArea">
                 <p>{{user}}@eda#.prog></p>
                 <textarea id="story" name="code" rows="13" required placeholder="Votre code..."></textarea>
             </div>
             <input id="bouton_lancer" type="submit" value="Lancer" disabled><br>
-            </div>
-            {% if code_entrer %}
-            votre ancien code est {{code}}
-            <br><br>
-            {% endif %}
+    </div>
+    {% if code_entrer %}
+    votre ancien code est {{code}}
+    <br><br>
+    {% endif %}
 
-            <div id="temps_restant">
-                Temps restant : <span id="compteur">180</span>
-            </div> 
+    <div id="temps_restant">
+        Temps restant : <span id="compteur">180</span>
+    </div>
     </form>
 
     <!-- message d'erreur et conseils -->
     <div id="alert" class="warning">Votre code n'est pas valide !</div>
     <div id="error-message" class="warning"></div>
-    
+
     <script src="{{ url_for('static', filename='verif.js') }}"></script>
-    </div> 
+    </div>
 </body>
 
 </html>

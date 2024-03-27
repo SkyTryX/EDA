@@ -1,5 +1,5 @@
-eda = ["repeat", "gauche", "droite", "bas", "haut", "shield"]
-eda_error = "Actions possibles ( pensez à verifier les erreurs de syntaxe) : repeat, gauche, droite, bas, haut, shield"
+eda = ["repeat", "gauche", "droite", "bas", "haut", "shield", "wait"]
+eda_error = "Actions possibles ( pensez à verifier les erreurs de syntaxe) : repeat, gauche, droite, bas, haut, shield, wait"
 model_repeat = ["(", int, ")", "{", "}",";"]
 model = ["(", int, ")",";"]
 model_repeat_error = "Voici comment vous devriez écrire votre code : repeat(int){instruction(s);};"

@@ -1,25 +1,26 @@
 compteur_function = () => {
-    if (compteur !== 0){
-    compteur--
-    compteur_html.textContent = compteur
+    if (compteur !== 0) {
+        compteur--
+        compteur_html.textContent = compteur
     }
-    
+
 }
 
 fin_manche = () => {
-    if (fin_du_jeu !== 1){
-    boutonLancer.disabled = true
-    codeInput.disabled = true
-    fin_du_jeu = 1
-    text = codeInput.value
-    envoyer_texte(text)
-}}
+    if (fin_du_jeu !== 1) {
+        boutonLancer.disabled = true
+        codeInput.disabled = true
+        fin_du_jeu = 1
+        text = codeInput.value
+        envoyer_texte(text)
+    }
+}
 
 envoyer_texte = (text) => {
     const xhr = new XMLHttpRequest();
-    xhr.open("POST", "/fin_timer", true);
+    xhr.open("POST", "/combat/next-turn", true);
     xhr.setRequestHeader("Content-Type", "application/json");
-    xhr.send(JSON.stringify({text: text}));
+    xhr.send(JSON.stringify({ text: text }));
 }
 
 verifyAfterDelay = () => {
@@ -28,7 +29,7 @@ verifyAfterDelay = () => {
     const xhr = new XMLHttpRequest()
     xhr.open("POST", "/verify", true)
     xhr.setRequestHeader("Content-Type", "application/json")
-    xhr.onreadystatechange = function() {
+    xhr.onreadystatechange = function () {
         if (xhr.readyState === 4 && xhr.status === 200) {
             const response = JSON.parse(xhr.responseText)
             if (response.result === true) {
@@ -41,7 +42,7 @@ verifyAfterDelay = () => {
                 if (response.error !== null) {
                     error_message.innerText = response.error // Afficher l'erreur
                     error_message.style.display = 'block' // Afficher le message d'erreur
-                } 
+                }
             }
         }
     }
@@ -56,10 +57,10 @@ desactive_pdt_ecrire = () => {
     timer = setTimeout(verifyAfterDelay, intervalleEcriture)
 }
 
-window.addEventListener("beforeunload", function(event) {
+window.addEventListener("beforeunload", function (event) {
     const xhr = new XMLHttpRequest()
     xhr.open("POST", "/refresh", true)
-  })
+})
 
 let fin_du_jeu = 0
 let compteur_html = document.getElementById("compteur")
@@ -74,7 +75,6 @@ const alert = document.getElementById("alert")
 const error_message = document.getElementById("error-message")
 
 
-boutonLancer.addEventListener('click', fin_manche)
 codeInput.addEventListener('input', desactive_pdt_ecrire)
 timer_jeu = setTimeout(fin_manche, duree_manche)
-setInterval (compteur_function, 1000)
+setInterval(compteur_function, 1000)

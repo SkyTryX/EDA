@@ -1,13 +1,14 @@
 from flask import Flask, render_template, request, session, redirect, jsonify
 from os.path import join, dirname, realpath
-import sqlite3
+from sqlite3 import connect
 from uuid import uuid4
 from json import load, dump, decoder
 from pathlib import Path
 from functions.display_map import load_map, SYMB
 from random import randint
 from functions.eda import *
-from functions.verifie_code import *
+from functions.verifie_code import eda_linter
+from time import sleep
 from werkzeug.middleware.proxy_fix import ProxyFix
 
 app = Flask(__name__)
@@ -20,7 +21,6 @@ app.wsgi_app = ProxyFix(
 @app.route("/")
 def start():
     session['uuid'] = None
-    session["kick"] = False
     return render_template('index.html')
 
 @app.route("/connection")
@@ -28,8 +28,8 @@ def connection():
     return render_template('connection.html', erreur=False)
     
 @app.route("/connect", methods=['POST'])
-def connect():
-    con = sqlite3.connect(join(app.config['DATA_DIR'],'database/compte.db'))
+def connection_error():
+    con = connect(join(app.config['DATA_DIR'],'database/compte.db'))
     cur = con.cursor()
     logging = cur.execute("SELECT mail, mdp FROM donnee WHERE mail=? AND mdp=?;",(request.form['mail'], request.form['mdp'])).fetchall()
     if len(logging) != 0:
@@ -45,7 +45,7 @@ def inscription():
 
 @app.route("/inscript", methods=['POST', 'GET'])
 def inscript():
-    con = sqlite3.connect(join(app.config['DATA_DIR'],'database/compte.db'))
+    con = connect(join(app.config['DATA_DIR'],'database/compte.db'))
     cur = con.cursor()
     mail = cur.execute("SELECT mail FROM donnee where pseudo=?;",(request.form['mail'], )).fetchone()
     pseudo = cur.execute("SELECT pseudo FROM donnee where pseudo=?;",(request.form['nom'], )).fetchone()
@@ -61,7 +61,7 @@ def inscript():
 
 @app.route("/profil")
 def profil():
-    con = sqlite3.connect(join(app.config['DATA_DIR'],'database/compte.db'))
+    con = connect(join(app.config['DATA_DIR'],'database/compte.db'))
     cur = con.cursor()
     pseudo = cur.execute("SELECT pseudo FROM donnee WHERE uuid=?;",(session['uuid'], )).fetchone()[0]
     mail = cur.execute("SELECT mail FROM donnee where uuid=?;",(session['uuid'], )).fetchone()[0]
@@ -89,78 +89,52 @@ def jouer():
 
 @app.route("/queue", methods=['GET'])
 def queue():
+    session["last_code"] = None
     session["bot"] = None
     if session.get("uuid") != None: # SI LE JOUEUR EXISTE
         with open(join(app.config['DATA_DIR'],"matches/queue.json"), "r") as file_read:
             data = load(file_read)
-            if data[request.args.get('gamemode')] == "None": # SI PERSONNE NE QUEUE
-                with open(join(app.config['DATA_DIR'],"matches/queue.json"), "w") as file:
-                    matchuuid= str(uuid4())
-                    data[request.args.get('gamemode')] = [session["uuid"], matchuuid]
-                    dump(data, file)
-                session["bot"] = "1"
-                session["match"] = matchuuid
-
-            elif data[request.args.get('gamemode')][0] == session["uuid"][0]: # SI UNE MEME PERSONNE QUEUE 2 FOIS
-                return redirect("/")
+        if data[request.args.get('gamemode')] == "None": # SI PERSONNE NE QUEUE
+            matchuuid= str(uuid4())
+            data[request.args.get('gamemode')] = [session["uuid"], matchuuid]
+            with open(join(app.config['DATA_DIR'],"matches/queue.json"), "w") as file: 
+                dump(data, file)
+            session["bot"] = "1"
+            session["match"] = matchuuid
+        elif data[request.args.get('gamemode')][0] == session["uuid"][0]: # SI UNE MEME PERSONNE QUEUE 2 FOIS
+            return redirect("/")
             
-            else: # SI LE JOUEUR QUEUE DANS UNE QUEUE DEJA PLEINE
-                with open(join(app.config['DATA_DIR'],"matches/queue.json"), "w") as file:
-                    other_player = data[request.args.get('gamemode')][0]
-                    session["match"] = data[request.args.get('gamemode')][1]
-                    data[request.args.get('gamemode')] = "None"
-                   
-                    with open(join(app.config['DATA_DIR'],f"matches/running/{session['match']}.json"), "w") as file_match:
-                        dump({"p1":session["uuid"],"p2":other_player, "pos_p1": [0, 0], "pos_p2": [15, 10], "p1_finit":False, "p2_finit":False, "p1_submitted":False, "p2_submitted":False, "shields":[], "dispo":True, "winner":None}, file_match)
-                    data[request.args.get('gamemode')] = "None"
-                    dump(data, file)
-                    session["bot"] = "2"
-                    return redirect("/combat")
+        else: # SI LE JOUEUR QUEUE DANS UNE QUEUE DEJA PLEINE
+            other_player = data[request.args.get('gamemode')][0]
+            session["match"] = data[request.args.get('gamemode')][1]
+            data[request.args.get('gamemode')] = "None"
+            session["bot"] = "2"
+            with open(join(app.config['DATA_DIR'],"matches/queue.json"), "w") as file:     
+                dump(data, file)   
+            with open(join(app.config['DATA_DIR'],f"matches/running/{session['match']}.json"), "w") as file_match:
+                dump({"p1":session["uuid"],"p2":other_player, "pos_p1": [0, 0], "pos_p2": [15, 10], "p1_finit":False, "p2_finit":False, "p1_submitted":False, "p2_submitted":False, "shields":[], "dispo":True, "winner":None}, file_match)        
+            return redirect("/combat")
     else:
         return redirect("/")
     return render_template("queue.html", gamemode=request.args.get("gamemode"))
 
                   
 
-@app.route("/combat", methods=['POST', 'GET'])
+@app.route("/combat")
 def combat():
-    if session["kick"]:
-        session["kick"] = False
-        return redirect("/")
-    
     ennemy = '1' if session['bot'] == '2' else '2'
     with open(join(app.config['DATA_DIR'],f"matches/running/{session['match']}.json"), "r") as match_file:
-        data_match = load(match_file) 
-    with open(join(app.config['DATA_DIR'],f"matches/running/{session['match']}.json"), "w") as match_file:
-        data_match[f"p{session['bot']}_finit"] = False
-        data_match[f"p{session['bot']}_submitted"] = True
-        dump(data_match, match_file)
-    
+        data_match = load(match_file)
     model = load_map(join(app.config['DATA_DIR'],f'maps/map{randint(1,1)}.csv'))
 
     cmds = None
-    if request.form.get('code') != None:
+    if session.get('last_code') != None:
+        with open(join(app.config['DATA_DIR'],f"matches/running/{session['match']}.json"), "w") as match_file:
+            dump(data_match, match_file)
 
-        while True:
-            try:
-                with open(join(app.config['DATA_DIR'],f"matches/running/{session['match']}.json"), "r") as match_file:
-                    if load(match_file)[f"p{ennemy}_submitted"]: break
-            except decoder.JSONDecodeError:
-                print("DECODER ERROR l150")
-    
-        cmds = compileur(lexxer(request.form['code']))
-
+        interpreter = EdaExecutor(data_match[f"pos_p{session['bot']}"][0], data_match[f"pos_p{session['bot']}"][1], [])
+        cmds = compileur(lexxer(session['last_code']), interpreter)
         for func in cmds:
-            
-            while True:
-                try:
-                    with open(join(app.config['DATA_DIR'],f"matches/running/{session['match']}.json"), "r") as check_dispo:
-                        if load(check_dispo)["dispo"] == (session["bot"] == "1") or data_match[f"p{ennemy}_finit"]:
-                            break
-                except decoder.JSONDecodeError:
-                    print("DECODER ERROR l163")
-
-                    
             in_shield = False
             for s in data_match["shields"]:
                 if s["bot"] == session["bot"]:
@@ -177,34 +151,28 @@ def combat():
                 pop_indexes.reverse()
                 for index in pop_indexes:
                     data_match["shields"].pop(index)
-
             else:
-                if len(func[1]) != 0:
-                    func[0](func[1][0])
-                else:
-                    func[0](model["walls"])
-            data_match[f"pos_p{session['bot']}"] = [memory[pos_y], memory[pos_x]]
+                func[0](model["walls"], int(func[1][0]))
+            data_match[f"pos_p{session['bot']}"] = [interpreter.memory[pos_y], interpreter.memory[pos_x]]
             data_match["dispo"] = not (session["bot"] == "1")
-            with open(join(app.config['DATA_DIR'],f"matches/running/{session['match']}.json"), "w") as setdispo:
-                    dump(data_match, setdispo)
         
         data_match[f"p{session['bot']}_finit"] = True
         with open(join(app.config['DATA_DIR'],f"matches/running/{session['match']}.json"), "w") as setdispo:
             dump(data_match, setdispo)
-            print(f"FAIT {session['bot']}")
 
         while True:
+            print("b"+session["bot"])
             with open(join(app.config['DATA_DIR'],f"matches/running/{session['match']}.json"), "r") as check_dispo:
                 try:
                     if load(check_dispo)[f"p{ennemy}_finit"]:
                         break
                 except decoder.JSONDecodeError:
-                    print("DECODER ERROR l203")
-
-    data_match[f"p{session['bot']}_submitted"] = False
-    with open(join(app.config['DATA_DIR'],f"matches/running/{session['match']}.json"), "w") as match_file:
-        dump(data_match, match_file)
-        
+                    pass
+            sleep(0.5)
+    
+    sleep(1)
+    with open(join(app.config['DATA_DIR'],f"matches/running/{session['match']}.json"), "r") as match_file:
+        data_match = load(match_file)
     map_str = ""
     for x in range(model['w']):
         for y in range(model['h']):
@@ -227,11 +195,15 @@ def combat():
                 else:
                     map_str += SYMB['free']
         map_str += "\n"
+    data_match[f"p{session['bot']}_submitted"] = False
+    data_match[f"p{session['bot']}_finit"] = False
+    with open(join(app.config['DATA_DIR'],f"matches/running/{session['match']}.json"), "w") as match_file:
+        dump(data_match, match_file)
     return render_template('combat.html', map=map_str, code_entrer=(cmds != None), bot=session["bot"])
 
 @app.route("/result_game")
 def result_game():
-    con = sqlite3.connect(join(app.config['DATA_DIR'],'database/compte.db'))
+    con = connect(join(app.config['DATA_DIR'],'database/compte.db'))
     cur = con.cursor()
     match = session["match"]
 
@@ -265,20 +237,34 @@ def verify_code():
 
 @app.route('/refresh', methods=['POST'])
 def refresh():
-    session['kick'] = True
-    return render_template('index.html')
+    return redirect("/")
 
-@app.route('/fin_timer', methods=['POST'])
-def fin_timer():
-    text = request.json['text']
-    session['last_code'] = text
-    return '', 204
-
-@app.route('/bouton_click', methods=['POST'])
-def bouton_click():
-    text = request.form['code']
-    session['last_code'] = text
-    return '', 204
+@app.route('/combat/next-turn', methods=['POST'])
+def next_turn():
+    ennemy = '1' if session['bot'] == '2' else '2'
+    with open(join(app.config['DATA_DIR'],f"matches/running/{session['match']}.json"), "r") as match_file:
+        data_match = load(match_file)
+    while True:
+        data_match[f"p{session['bot']}_submitted"] = True
+        with open(join(app.config['DATA_DIR'],f"matches/running/{session['match']}.json"), "w") as match_file:
+            dump(data_match, match_file)
+        with open(join(app.config['DATA_DIR'],f"matches/running/{session['match']}.json"), "r") as match_file:
+            if load(match_file)[f"p{session['bot']}_submitted"]:
+                break
+    if request.form.get("code") == None:
+        session['last_code'] = request.json['text']
+    else:
+        session['last_code'] = request.form["code"]
+    while True:
+        print("a"+session["bot"])
+        with open(join(app.config['DATA_DIR'],f"matches/running/{session['match']}.json"), "r") as match_file:
+            try:
+                if load(match_file)[f"p{ennemy}_submitted"]:
+                    break
+            except decoder.JSONDecodeError:
+                pass
+        sleep(0.5)
+    return redirect("/combat")
 
 if __name__ == '__main__':
     app.run(host='127.0.0.1', port=5000, debug=True)
