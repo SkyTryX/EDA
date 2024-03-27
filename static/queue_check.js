@@ -9,10 +9,12 @@ setInterval(function () {
         if (site.includes("course")) {
             if (result["course"] === "None") {
                 location.href = '/course';
+                clearInterval(this);
             }
         } else if (site.includes("combat")) {
             if (result["combat"] === "None") {
                 location.href = '/combat';
+                clearInterval(this);
             }
         }
     });
