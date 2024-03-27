@@ -4,20 +4,55 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+    <title>Profil</title>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Press+Start+2P">
+    <style>
+        body {
+            background-color: #000;
+            color: rgb(175, 0, 161); /* Couleur violette */
+            font-family: 'Press Start 2P', cursive;
+            text-align: center;
+            margin: 0; /* Supprimer les marges par défaut */
+            padding: 20px;
+        }
+
+        i {
+            font-style: italic;
+            color: #fff;
+            font-size: 14px;
+        }
+
+        a {
+            color: rgb(175, 0, 161);
+            text-decoration: none;
+            font-family: 'Press Start 2P', cursive;
+            margin: 10px; /* Ajout d'un espace autour de chaque lien */
+        }
+
+        a:hover {
+            text-decoration: underline;
+        }
+
+        b {
+            color: rgb(175, 0, 161);
+            font-family: 'Press Start 2P', cursive;
+            font-size: 24px;
+            margin-bottom: 20px; /* Ajout d'un espace en bas de l'élément b */
+        }
+    </style>
 </head>
 
 <body>
-    <i>**(stats (win, kills, elo, map favori), modif password, mail, pseudo, suppr compte etc...)**</i>
-    <br>
-    Pseudo : {{pseudo}}
-    <br>
-    Mail : {{mail}}
+    <b>Profil</b>
     <br><br>
-    Nombre de victoires : {{win}}
-    <br>
-    Rang : {{elo}}
-    <br><br><br>
+    <i>(stats: Victoires, Kills, Rang, Map favorite)</i>
+    <br><br>
+    <div>
+        <p>Pseudo : {{pseudo}}</p>
+        <p>Mail : {{mail}}</p>
+        <p>Nombre de victoires : {{win}}</p>
+        <p>Rang : {{elo}}</p>
+    </div>
     <a href="/suprcompte">Supprimer mon compte</a><br>
     <a href="/deconnexion">Se déconnecter</a><br>
     <a href="/">Retour</a>

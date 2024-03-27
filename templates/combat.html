@@ -1,11 +1,95 @@
 <!DOCTYPE html>
-<html>
+<html lang="fr">
 
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Combat Map</title>
-    <link rel="stylesheet" type="text/css" href="/static/css/combat.css">
-    <link rel="stylesheet" type="text/css" href="/static/css/style.css">
-    <link rel="stylesheet" href="static/css/style_cmd.css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Press+Start+2P">
+    <style>
+        body {
+            background-color: #000;
+            color: rgb(175, 0, 161); /* Couleur violette */
+            font-family: 'Press Start 2P', cursive;
+            text-align: center;
+            margin: 0; /* Supprimer les marges par défaut */
+        }
+
+        .map-container {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 414px;
+            height: 414px;
+            /* a changer si besoin */
+            z-index: 1000;
+        }
+
+        .yellow {
+            color: yellow;
+        }
+
+        pre {
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            max-width: 414px;
+            font-size: 1.5em;
+            color: rgb(175, 0, 161);
+        }
+
+        .textArea {
+            font-size: 0.8em;
+            letter-spacing: 1px;
+            padding: 5px;
+            max-width: 100%;
+            line-height: 1.5;
+            border-radius: 5px;
+            border: none;
+            box-shadow: 1px 1px 1px #999;
+            background-color: #000000;
+            color: rgb(175, 0, 161);
+        }
+
+        .textArea p {
+            font-size: 1.1em;
+            font-family: monospace;
+            letter-spacing: 1px;
+            padding: 0;
+        }
+
+        .textArea textarea {
+            background-color: #000000;
+            color: rgb(175, 0, 161);
+            width: 99.5%;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 10px;
+        }
+
+        a {
+            color: rgb(175, 0, 161);
+            text-decoration: none;
+            font-family: 'Press Start 2P', cursive;
+            margin: 10px; /* Ajout d'un espace autour de chaque lien */
+        }
+
+        a:hover {
+            text-decoration: underline;
+        }
+
+        .warning {
+            display: none;
+            color: red;
+            font-weight: bold;
+        }
+
+        #temps_restant {
+            font-weight: bold;
+            color: rgb(175, 0, 161);
+        }
+    </style>
 </head>
 
 <body>
@@ -15,7 +99,7 @@
         </pre>
     </div>
     <div class="test">
-        Vous jouer en {{ gamemode }} <br><br>
+        Vous jouez en {{ gamemode }} <br><br>
         Vous êtes {%if session.get("bot") == "1"%} @ {% else %} # {% endif %}
         <form action="/combat/next-turn" method="POST">
             <label for="story">CMD:</label>
