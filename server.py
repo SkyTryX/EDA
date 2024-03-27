@@ -69,15 +69,28 @@ def profil():
 @app.route("/deconnexion")
 def deconnexion():
     session["uuid"] = None
-    return render_template('index.html')
+    return redirect("/")
 
+
+@app.route("/suprcompte")
+def suprcompte():
+    return render_template("suprcompte.html")
+
+@app.route("/supr")
+def supr():
+    con = connect(join(app.config['DATA_DIR'],'database/compte.db'))
+    cur = con.cursor()
+    info = cur.execute("SELECT mail, mdp FROM donnee WHERE uuid=?;",(session['uuid'], )).fetchone()[0]
+    if info == [request.form["mail"], request.form["mdp1"]] and request.form["mdp1"] == request.form["mdp2"] and request.form["confirmer"] == "CONFIRMER":
+        cur.execute("DELETE * FROM stats where uuid=?;",(session['uuid'], ))
+        cur.execute("DELETE * FROM donnee where uuid=?;",(session['uuid'], ))
+        con.commit()
+        return redirect("/deconnexion")
+    else:
+        return redirect("/suprcompte")
 @app.route("/presentation")
 def presentation():
     return render_template('presentation.html')
-
-@app.route("/moderation")
-def moderation():
-    return render_template('moderation.html')
 
 @app.route("/jouer")
 def jouer():
