@@ -9,14 +9,10 @@ from random import randint
 from functions.eda_sharp import *
 from functions.verifie_code import eda_linter
 from time import sleep
-from werkzeug.middleware.proxy_fix import ProxyFix
 
 app = Flask(__name__)
 app.config['DATA_DIR'] = join(dirname(realpath(__file__)),'static')
 app.secret_key = b'99b45274a4b2da7440ab249f17e718688b53b646f3dd57f23a9b29839161749f'
-app.wsgi_app = ProxyFix(
-    app.wsgi_app, x_for=1, x_proto=1, x_host=1, x_prefix=1
-)
 
 @app.route("/")
 def start():
