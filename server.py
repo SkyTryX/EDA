@@ -45,7 +45,7 @@ def inscript():
     cur = con.cursor()
     mail = cur.execute("SELECT mail FROM donnee where pseudo=?;",(request.form['mail'], )).fetchone()
     pseudo = cur.execute("SELECT pseudo FROM donnee where pseudo=?;",(request.form['nom'], )).fetchone()
-    if (mail == None and pseudo == None) and not (len(pseudo) <= 2 or not is_valid_mail(mail)):
+    if (mail == None and pseudo == None) and not (len(request.form['nom']) <= 2 or not is_valid_mail(request.form['mail'])):
         uuid = str(uuid4())
         cur.execute("INSERT INTO donnee VALUES(?,?,?,?);",(uuid, request.form['mail'], request.form['nom'], request.form['mdp']))
         cur.execute("INSERT INTO stats VALUES(?,?,?);",(uuid, 0, 1400,))
@@ -76,14 +76,15 @@ def deconnexion():
 def suprcompte():
     return render_template("suprcompte.html")
 
-@app.route("/supr")
+@app.route("/supr", methods=['POST', 'GET'])
 def supr():
     con = connect(join(app.config['DATA_DIR'],'database/compte.db'))
     cur = con.cursor()
-    info = cur.execute("SELECT mail, mdp FROM donnee WHERE uuid=?;",(session['uuid'], )).fetchone()[0]
-    if info == [request.form["mail"], request.form["mdp1"]] and request.form["mdp1"] == request.form["mdp2"] and request.form["confirmer"] == "CONFIRMER":
-        cur.execute("DELETE * FROM stats where uuid=?;",(session['uuid'], ))
-        cur.execute("DELETE * FROM donnee where uuid=?;",(session['uuid'], ))
+    info = cur.execute("SELECT mail, mdp FROM donnee WHERE uuid=?;",(session['uuid'], )).fetchmany()[0]
+    print(info)
+    if info == (request.form["mail"], request.form["mdp1"]) and request.form["mdp1"] == request.form["mdp2"] and request.form["confirmer"] == "CONFIRMER":
+        cur.execute("DELETE FROM stats where uuid=?;",(session['uuid'], ))
+        cur.execute("DELETE FROM donnee where uuid=?;",(session['uuid'], ))
         con.commit()
         return redirect("/deconnexion")
     else:
