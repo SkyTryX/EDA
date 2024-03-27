@@ -81,7 +81,6 @@ def supr():
     con = connect(join(app.config['DATA_DIR'],'database/compte.db'))
     cur = con.cursor()
     info = cur.execute("SELECT mail, mdp FROM donnee WHERE uuid=?;",(session['uuid'], )).fetchmany()[0]
-    print(info)
     if info == (request.form["mail"], request.form["mdp1"]) and request.form["mdp1"] == request.form["mdp2"] and request.form["confirmer"] == "CONFIRMER":
         cur.execute("DELETE FROM stats where uuid=?;",(session['uuid'], ))
         cur.execute("DELETE FROM donnee where uuid=?;",(session['uuid'], ))
@@ -175,7 +174,7 @@ def combat():
                     data_match["shields"].pop(index)
             else:
                 func[0](model["walls"], int(func[1][0]))
-            data_match[f"pos_p{session['bot']}"] = [interpreter.memory[pos_y], interpreter.memory[pos_x]]
+            data_match[f"pos_p{session['bot']}"] = [interpreter.memory[pos_x], interpreter.memory[pos_y]]
             data_match["dispo"] = not (session["bot"] == "1")
         
         data_match[f"p{session['bot']}_finit"] = True
@@ -183,7 +182,6 @@ def combat():
             dump(data_match, setdispo)
 
         while True:
-            print("b"+session["bot"])
             with open(join(app.config['DATA_DIR'],f"matches/running/{session['match']}.json"), "r") as check_dispo:
                 try:
                     if load(check_dispo)[f"p{ennemy}_finit"]:
@@ -202,6 +200,7 @@ def combat():
             for s in data_match["shields"]:
                 if [x, y] == s["coords"]:
                     has_shield = True
+
             if [x, y] in model['walls']:
                 if has_shield:
                     map_str += SYMB['shield'][0]
@@ -221,7 +220,7 @@ def combat():
     data_match[f"p{session['bot']}_finit"] = False
     with open(join(app.config['DATA_DIR'],f"matches/running/{session['match']}.json"), "w") as match_file:
         dump(data_match, match_file)
-    return render_template('combat.html', map=map_str, code_entrer=(cmds != None), bot=session["bot"])
+    return render_template('combat.html', map=map_str, bot=session["bot"])
 
 @app.route("/result_game")
 def result_game():
@@ -278,7 +277,6 @@ def next_turn():
     else:
         session['last_code'] = request.form["code"]
     while True:
-        print("a"+session["bot"])
         with open(join(app.config['DATA_DIR'],f"matches/running/{session['match']}.json"), "r") as match_file:
             try:
                 if load(match_file)[f"p{ennemy}_submitted"]:

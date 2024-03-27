@@ -10,10 +10,12 @@
     <style>
         body {
             background-color: #000;
-            color: rgb(175, 0, 161); /* Couleur violette */
+            color: rgb(175, 0, 161);
+            /* Couleur violette */
             font-family: 'Press Start 2P', cursive;
             text-align: center;
-            margin: 0; /* Supprimer les marges par défaut */
+            margin: 0;
+            /* Supprimer les marges par défaut */
         }
 
         .map-container {
@@ -73,7 +75,8 @@
             color: rgb(175, 0, 161);
             text-decoration: none;
             font-family: 'Press Start 2P', cursive;
-            margin: 10px; /* Ajout d'un espace autour de chaque lien */
+            margin: 10px;
+            /* Ajout d'un espace autour de chaque lien */
         }
 
         a:hover {
@@ -111,10 +114,6 @@
             </div>
             <input id="bouton_lancer" type="submit" value="Lancer" disabled><br>
     </div>
-    {% if code_entrer %}
-    votre ancien code est {{code}}
-    <br><br>
-    {% endif %}
 
     <div id="temps_restant">
         Temps restant : <span id="compteur">180</span>

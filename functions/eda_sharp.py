@@ -23,19 +23,19 @@ class EdaExecutor():
     def __init__(self, x, y, shields) -> None:
         self.memory = {0:x, 1:y, 2:shields}
         
-    def gauche(self, walls, i):
-        if not [self.memory[pos_y],self.memory[pos_x]-i] in walls or self.memory[pos_x] == 0:
-            self.memory[pos_x] -= i
-
-    def droite(self, walls, i):
-        if not [self.memory[pos_y], self.memory[pos_x]+i] in walls or self.memory[pos_x] == 10:
+    def bas(self, walls, i):
+        if not [self.memory[pos_y],self.memory[pos_x]-i] in walls or self.memory[pos_x] == 10:
             self.memory[pos_x] += i
 
-    def bas(self, walls, i):
+    def haut(self, walls, i):
+        if not [self.memory[pos_y], self.memory[pos_x]+i] in walls or self.memory[pos_x] == 0:
+            self.memory[pos_x] -= i
+
+    def gauche(self, walls, i):
         if not [self.memory[pos_y]-i, self.memory[pos_x]] in walls or self.memory[pos_y] == 0:
             self.memory[pos_y] += i
 
-    def haut(self, walls, i):
+    def droite(self, walls, i):
         if not [self.memory[pos_y]+i, self.memory[pos_x]] in walls or self.memory[pos_y] == 15:
             self.memory[pos_y] -= i
 
