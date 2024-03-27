@@ -8,6 +8,7 @@ from functions.display_map import load_map, SYMB
 from random import randint
 from functions.eda_sharp import *
 from functions.verifie_code import eda_linter
+from functions.mailcheck import is_valid_mail
 from time import sleep
 
 app = Flask(__name__)
@@ -44,7 +45,7 @@ def inscript():
     cur = con.cursor()
     mail = cur.execute("SELECT mail FROM donnee where pseudo=?;",(request.form['mail'], )).fetchone()
     pseudo = cur.execute("SELECT pseudo FROM donnee where pseudo=?;",(request.form['nom'], )).fetchone()
-    if mail == None and pseudo == None:
+    if (mail == None and pseudo == None) and not (len(pseudo) <= 2 or not is_valid_mail(mail)):
         uuid = str(uuid4())
         cur.execute("INSERT INTO donnee VALUES(?,?,?,?);",(uuid, request.form['mail'], request.form['nom'], request.form['mdp']))
         cur.execute("INSERT INTO stats VALUES(?,?,?);",(uuid, 0, 1400,))
