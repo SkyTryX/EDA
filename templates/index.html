@@ -12,15 +12,16 @@
             color: rgb(175, 0, 161); /* Couleur violette */
             font-family: 'Press Start 2P', cursive;
             text-align: center;
-            padding-bottom: 100px; /* Pour laisser de l'espace pour la console en bas */
             margin: 0; /* Supprimer les marges par défaut */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            height: 100vh;
         }
 
         .console-container {
-            position: fixed;
-            bottom: 0;
-            left: 0;
-            width: 100%;
+            margin-top: 20px;
             background-color: #000;
             border-top: 2px solid #fff;
             padding: 10px 0;
@@ -28,13 +29,13 @@
             display: flex; /* Utiliser la disposition flexbox */
             flex-direction: column; /* Empiler les éléments en ordre direct */
             align-items: flex-start; /* Aligner les éléments sur la gauche */
+            width: 100%;
         }
 
         .console-input {
             color: rgb(175, 0, 161); /* Couleur violette */
             font-family: 'Press Start 2P', cursive;
             font-size: 14px;
-            line-height: 1.5;
             border: none;
             background: transparent;
             width: calc(100% - 30px);
@@ -114,4 +115,6 @@
         });
     </script>
 </body>
+
 </html>
+

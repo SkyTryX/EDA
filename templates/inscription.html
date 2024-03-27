@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="fr">
 
 <head>
     <meta charset="UTF-8">
@@ -9,66 +9,45 @@
     <style>
         body {
             background-color: #000;
-            color: #8a2be2; /* Couleur violette */
+            color: rgb(175, 0, 161);
             font-family: 'Press Start 2P', cursive;
             text-align: center;
-            padding-bottom: 100px; /* Pour laisser de l'espace pour la console en bas */
             margin: 0; /* Supprimer les marges par défaut */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
         }
 
         .form-container {
-            position: fixed;
-            bottom: 0;
-            left: 0;
-            width: 100%;
             background-color: #000;
-            border-top: 2px solid #fff;
-            padding: 10px 0;
-            color: #8a2be2; /* Couleur violette */
-            display: flex; /* Utiliser la disposition flexbox */
-            flex-direction: column; /* Empiler les éléments en ordre direct */
-            align-items: flex-start; /* Aligner les éléments sur la gauche */
+            border: 2px solid rgb(175, 0, 161);
+            padding: 20px;
+            color: rgb(175, 0, 161);
+            max-width: 400px;
+            width: 100%;
         }
 
         input[type="text"],
-        input[type="password"] {
-            color: #8a2be2; /* Couleur violette */
-            font-family: 'Press Start 2P', cursive;
-            font-size: 14px;
-            border: none;
-            background: transparent;
-            width: calc(100% - 30px);
-            margin-left: 15px;
-            outline: none;
-            caret-color: #8a2be2; /* Couleur du curseur de saisie */
-            margin-bottom: 10px; /* Ajout d'un espace en bas */
-        }
-
-        input[type="text"]::placeholder,
-        input[type="password"]::placeholder {
-            color: #666; /* Couleur du texte d'indication */
-        }
-
-        input[type="text"]:focus::placeholder,
-        input[type="password"]:focus::placeholder {
-            color: transparent; /* Masquer le texte d'indication lorsqu'il est en focus */
-        }
-
+        input[type="password"],
         input[type="submit"] {
-            background-color: #8a2be2; /* Couleur violette */
-            color: #fff;
-            font-family: 'Press Start 2P', cursive;
-            border: none;
+            background-color: #666;
+            color: rgb(175, 0, 161);
+            border: 2px solid #333;
             padding: 5px 10px;
-            cursor: pointer;
-            font-size: 14px;
-            text-decoration: none;
-            margin-left: 15px;
+            font-family: 'Press Start 2P', cursive;
+            margin-bottom: 10px; /* Ajout d'un espace en bas */
             outline: none;
+            width: calc(100% - 24px); /* largeur - padding * 2 */
+        }
+
+        input[type="submit"]:hover {
+            background-color: #333;
+            cursor: pointer;
         }
 
         a {
-            color: #fff;
+            color: rgb(175, 0, 161);
             text-decoration: none;
             font-family: 'Press Start 2P', cursive;
             margin: 10px; /* Ajout d'un espace autour de chaque lien */
@@ -79,7 +58,7 @@
         }
 
         b {
-            color: #fff;
+            color: rgb(175, 0, 161);
             font-family: 'Press Start 2P', cursive;
             font-size: 24px;
             margin-bottom: 20px; /* Ajout d'un espace en bas de l'élément b */
@@ -88,13 +67,13 @@
 </head>
 
 <body>
-    <b>Inscription</b>
-    <br><br>
-    {% if erreur %}
-    Pseudo ou mail déjà utilisé
-    {% endif %}
-
     <div class="form-container">
+        <b>Inscription</b>
+        <br><br>
+        {% if erreur %}
+        <p>Pseudo ou mail déjà utilisé</p>
+        {% endif %}
+
         <form action="/inscript" method="POST">
             <input type="text" name="nom" placeholder="Nom"><br>
             <input type="text" name="mail" placeholder="Mail"><br>
@@ -104,4 +83,6 @@
         </form>
     </div>
 </body>
+
 </html>
+

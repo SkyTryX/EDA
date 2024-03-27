@@ -9,18 +9,36 @@
     <style>
         body {
             background-color: #000;
-            color: #fff;
+            color: rgb(175, 0, 161);
             font-family: 'Press Start 2P', cursive;
+            text-align: center;
+            margin: 0; /* Supprimer les marges par défaut */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+
+        .form-container {
+            background-color: #000;
+            border: 2px solid rgb(175, 0, 161);
+            padding: 20px;
+            color: rgb(175, 0, 161);
+            max-width: 400px;
+            width: 100%;
         }
 
         input[type="text"],
         input[type="password"],
         input[type="submit"] {
             background-color: #666;
-            color: #fff;
+            color: rgb(175, 0, 161);
             border: 2px solid #333;
             padding: 5px 10px;
             font-family: 'Press Start 2P', cursive;
+            margin-bottom: 10px; /* Ajout d'un espace en bas */
+            outline: none;
+            width: calc(100% - 24px); /* largeur - padding * 2 */
         }
 
         input[type="submit"]:hover {
@@ -29,9 +47,10 @@
         }
 
         a {
-            color: #fff;
+            color: rgb(175, 0, 161);
             text-decoration: none;
             font-family: 'Press Start 2P', cursive;
+            margin: 10px; /* Ajout d'un espace autour de chaque lien */
         }
 
         a:hover {
@@ -41,15 +60,18 @@
 </head>
 
 <body>
-    {% if erreur %}
-    <p>Mail inexistant ou mot de passe incorrect</p>
-    {% endif %}
-    <form action="/connect" method="POST">
-        <p>Mail : <input type="text" name="mail"></p>
-        <p>Mot de passe : <input type="password" name="mdp"></p>
-        <p><input type="submit" value="Valider"></p>
-        <p><a href="/index">Retour</a></p>
-    </form>
+    <div class="form-container">
+        {% if erreur %}
+        <p>Mail inexistant ou mot de passe incorrect</p>
+        {% endif %}
+        <form action="/connect" method="POST">
+            <p>Mail : <input type="text" name="mail"></p>
+            <p>Mot de passe : <input type="password" name="mdp"></p>
+            <p><input type="submit" value="Valider"></p>
+            <p><a href="/index">Retour</a></p>
+        </form>
+    </div>
 </body>
 
 </html>
+
