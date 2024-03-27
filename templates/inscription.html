@@ -4,21 +4,104 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+    <title>Inscription</title>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Press+Start+2P">
+    <style>
+        body {
+            background-color: #000;
+            color: #8a2be2; /* Couleur violette */
+            font-family: 'Press Start 2P', cursive;
+            text-align: center;
+            padding-bottom: 100px; /* Pour laisser de l'espace pour la console en bas */
+            margin: 0; /* Supprimer les marges par défaut */
+        }
+
+        .form-container {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            background-color: #000;
+            border-top: 2px solid #fff;
+            padding: 10px 0;
+            color: #8a2be2; /* Couleur violette */
+            display: flex; /* Utiliser la disposition flexbox */
+            flex-direction: column; /* Empiler les éléments en ordre direct */
+            align-items: flex-start; /* Aligner les éléments sur la gauche */
+        }
+
+        input[type="text"],
+        input[type="password"] {
+            color: #8a2be2; /* Couleur violette */
+            font-family: 'Press Start 2P', cursive;
+            font-size: 14px;
+            border: none;
+            background: transparent;
+            width: calc(100% - 30px);
+            margin-left: 15px;
+            outline: none;
+            caret-color: #8a2be2; /* Couleur du curseur de saisie */
+            margin-bottom: 10px; /* Ajout d'un espace en bas */
+        }
+
+        input[type="text"]::placeholder,
+        input[type="password"]::placeholder {
+            color: #666; /* Couleur du texte d'indication */
+        }
+
+        input[type="text"]:focus::placeholder,
+        input[type="password"]:focus::placeholder {
+            color: transparent; /* Masquer le texte d'indication lorsqu'il est en focus */
+        }
+
+        input[type="submit"] {
+            background-color: #8a2be2; /* Couleur violette */
+            color: #fff;
+            font-family: 'Press Start 2P', cursive;
+            border: none;
+            padding: 5px 10px;
+            cursor: pointer;
+            font-size: 14px;
+            text-decoration: none;
+            margin-left: 15px;
+            outline: none;
+        }
+
+        a {
+            color: #fff;
+            text-decoration: none;
+            font-family: 'Press Start 2P', cursive;
+            margin: 10px; /* Ajout d'un espace autour de chaque lien */
+        }
+
+        a:hover {
+            text-decoration: underline;
+        }
+
+        b {
+            color: #fff;
+            font-family: 'Press Start 2P', cursive;
+            font-size: 24px;
+            margin-bottom: 20px; /* Ajout d'un espace en bas de l'élément b */
+        }
+    </style>
 </head>
 
 <body>
+    <b>Inscription</b>
+    <br><br>
     {% if erreur %}
     Pseudo ou mail déjà utilisé
     {% endif %}
 
-    <form action="/inscript" method="POST">
-        Nom : <input type="text" name="nom"></br>
-        Mail : <input type="text" name="mail"></br>
-        Mot de passe : <input type="password" name="mdp"><br>
-        <input type="submit" value="Valider"><br>
-        <a href="/index">Retour</a>
-
+    <div class="form-container">
+        <form action="/inscript" method="POST">
+            <input type="text" name="nom" placeholder="Nom"><br>
+            <input type="text" name="mail" placeholder="Mail"><br>
+            <input type="password" name="mdp" placeholder="Mot de passe"><br>
+            <input type="submit" value="Valider"><br>
+            <a href="/index">Retour</a>
+        </form>
+    </div>
 </body>
-
 </html>
