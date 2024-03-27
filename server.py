@@ -93,6 +93,10 @@ def queue():
     if session.get("uuid") != None: # SI LE JOUEUR EXISTE
         with open(join(app.config['DATA_DIR'],"matches/queue.json"), "r") as file_read:
             data = load(file_read)
+        if data == None:
+            data = {"combat":"None"} 
+            with open(join(app.config['DATA_DIR'],"matches/queue.json"), "w") as file: 
+                dump(data, file)
         if data[request.args.get('gamemode')] == "None": # SI PERSONNE NE QUEUE
             matchuuid= str(uuid4())
             data[request.args.get('gamemode')] = [session["uuid"], matchuuid]
