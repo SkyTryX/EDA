@@ -1,3 +1,6 @@
+D'accord, voici le code HTML de combat.html avec le style retro que vous avez fourni auparavant :
+
+```html
 <!DOCTYPE html>
 <html lang="fr">
 
@@ -10,47 +13,51 @@
     <style>
         body {
             background-color: #000;
-            color: rgb(175, 0, 161);
-            /* Couleur violette */
+            color: #8a2be2; /* Couleur violette */
             font-family: 'Press Start 2P', cursive;
             text-align: center;
-            margin: 0;
-            /* Supprimer les marges par défaut */
+            margin: 0; /* Supprimer les marges par défaut */
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
         }
 
         .map-container {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 414px;
-            height: 414px;
-            /* a changer si besoin */
-            z-index: 1000;
+            width: 50%; /* Prend la moitié de la largeur de la fenêtre */
+            height: 50vh; /* Prend la moitié de la hauteur de la fenêtre */
+            overflow: auto; /* Permet le défilement si nécessaire */
+            border: 2px solid #8a2be2; /* Bordure violette */
+            margin-bottom: 20px; /* Marge en bas */
         }
 
-        .yellow {
-            color: yellow;
-        }
-
-        pre {
+        .map-container pre {
             white-space: pre-wrap;
             word-wrap: break-word;
-            max-width: 414px;
             font-size: 1.5em;
-            color: rgb(175, 0, 161);
+            line-height: 1.5;
+        }
+
+        .test {
+            color: #8a2be2; /* Couleur violette */
+            margin-bottom: 20px; /* Marge en bas */
         }
 
         .textArea {
             font-size: 0.8em;
             letter-spacing: 1px;
             padding: 5px;
-            max-width: 100%;
+            max-width: 90%;
             line-height: 1.5;
             border-radius: 5px;
-            border: none;
+            border: 2px solid #8a2be2; /* Bordure violette */
             box-shadow: 1px 1px 1px #999;
             background-color: #000000;
-            color: rgb(175, 0, 161);
+            color: #8a2be2; /* Couleur violette */
+            width: 90%; /* Largeur du textArea */
+            height: 200px; /* Hauteur du textArea */
+            resize: none; /* Empêche le redimensionnement du textarea */
+            margin-bottom: 20px; /* Marge en bas */
         }
 
         .textArea p {
@@ -58,12 +65,17 @@
             font-family: monospace;
             letter-spacing: 1px;
             padding: 0;
+            margin: 0;
         }
 
         .textArea textarea {
             background-color: #000000;
-            color: rgb(175, 0, 161);
-            width: 99.5%;
+            color: #8a2be2; /* Couleur violette */
+            width: 100%;
+            height: 100%;
+            border: none; /* Supprimer la bordure par défaut */
+            outline: none; /* Supprimer la bordure d'entrée en surbrillance */
+            font-family: 'Press Start 2P', cursive;
         }
 
         label {
@@ -71,61 +83,42 @@
             margin-bottom: 10px;
         }
 
-        a {
-            color: rgb(175, 0, 161);
-            text-decoration: none;
-            font-family: 'Press Start 2P', cursive;
-            margin: 10px;
-            /* Ajout d'un espace autour de chaque lien */
-        }
-
-        a:hover {
-            text-decoration: underline;
+        #temps_restant {
+            font-weight: bold;
+            color: #8a2be2; /* Couleur violette */
+            margin-bottom: 20px; /* Marge en bas */
         }
 
         .warning {
             display: none;
             color: red;
             font-weight: bold;
-        }
-
-        #temps_restant {
-            font-weight: bold;
-            color: rgb(175, 0, 161);
+            margin-bottom: 20px; /* Marge en bas */
         }
     </style>
-
 </head>
 
 <body>
     <div class="map-container">
-        <pre id="zone_map" style="white-space: pre-wrap; overflow: auto;">
+        <pre id="zone_map">
 {{map}}
         </pre>
     </div>
     <div class="test">
         Vous jouez en {{ gamemode }} <br><br>
-        Vous êtes {%if session.get("bot") == "1"%} @ {% else %} # {% endif %}
+        Vous êtes {% if session.get("bot") == "1" %} @ {% else %} # {% endif %}
         <form action="/combat/next-turn" method="POST">
             <label for="story">CMD:</label>
             <div class="textArea">
-                <p>{{user}}@eda#.prog></p>
+                <p>{{ user }}@eda#.prog></p>
                 <textarea id="story" name="code" rows="13" required placeholder="Votre code..."></textarea>
             </div>
             <input id="bouton_lancer" type="submit" value="Lancer" disabled><br>
+        </form>
     </div>
 
     <div id="temps_restant">
         Temps restant : <span id="compteur">180</span>
     </div>
-    </form>
 
-    <!-- message d'erreur et conseils -->
-    <div id="alert" class="warning">Votre code n'est pas valide !</div>
-    <div id="error-message" class="warning"></div>
-
-    <script src="{{ url_for('static', filename='verif.js') }}"></script>
-    </div>
-</body>
-
-</html>
+   
