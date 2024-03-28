@@ -6,7 +6,7 @@ from json import load, dump, decoder
 from pathlib import Path
 from functions.display_map import load_map, SYMB
 from random import randint
-from functions.eda_sharp import spliter, lexxer, EdaExecutor, pos_x, pos_y, compileur
+from functions.eda_sharp import spliter, lexxer, EdaExecutor, pos_x, pos_y, shields, compileur
 from functions.verifie_code import eda_linter
 from functions.mailcheck import is_valid_mail
 from time import sleep
@@ -152,7 +152,8 @@ def combat():
         for func in cmds:
             in_shield = False
             for s in data_match["shields"]:
-                if s["bot"] == session["bot"]:
+                print(s)
+                if s[1] == session["bot"]:
                     in_shield = True
                     break 
             
@@ -170,7 +171,8 @@ def combat():
                 func[0](model["walls"], int(func[1][0]))
             data_match[f"pos_p{session['bot']}"] = [interpreter.memory[pos_x], interpreter.memory[pos_y]]
             data_match["dispo"] = not (session["bot"] == "1")
-        
+        for shield in interpreter.memory[shields]:
+            data_match["shields"].append(shield)
         data_match[f"p{session['bot']}_finit"] = True
         with open(join(app.config['DATA_DIR'],f"matches/running/{session['match']}.json"), "w") as setdispo:
             dump(data_match, setdispo)
