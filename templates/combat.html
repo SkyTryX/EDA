@@ -1,6 +1,3 @@
-D'accord, voici le code HTML de combat.html avec le style retro que vous avez fourni auparavant :
-
-```html
 <!DOCTYPE html>
 <html lang="fr">
 
@@ -13,12 +10,10 @@ D'accord, voici le code HTML de combat.html avec le style retro que vous avez fo
     <style>
         body {
             background-color: #000;
-            color: #8a2be2;
-            /* Couleur violette */
+            color: #8a2be2; /* Couleur violette */
             font-family: 'Press Start 2P', cursive;
             text-align: center;
-            margin: 0;
-            /* Supprimer les marges par défaut */
+            margin: 0; /* Supprimer les marges par défaut */
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -26,16 +21,11 @@ D'accord, voici le code HTML de combat.html avec le style retro que vous avez fo
         }
 
         .map-container {
-            width: 50%;
-            /* Prend la moitié de la largeur de la fenêtre */
-            height: 50vh;
-            /* Prend la moitié de la hauteur de la fenêtre */
-            overflow: auto;
-            /* Permet le défilement si nécessaire */
-            border: 2px solid #8a2be2;
-            /* Bordure violette */
-            margin-bottom: 20px;
-            /* Marge en bas */
+            width: 50%; /* Prend la moitié de la largeur de la fenêtre */
+            height: 50vh; /* Prend la moitié de la hauteur de la fenêtre */
+            overflow: auto; /* Permet le défilement si nécessaire */
+            border: 2px solid #8a2be2; /* Bordure violette */
+            margin-bottom: 20px; /* Marge en bas */
         }
 
         .map-container pre {
@@ -46,10 +36,8 @@ D'accord, voici le code HTML de combat.html avec le style retro que vous avez fo
         }
 
         .test {
-            color: #8a2be2;
-            /* Couleur violette */
-            margin-bottom: 20px;
-            /* Marge en bas */
+            color: #8a2be2; /* Couleur violette */
+            margin-bottom: 20px; /* Marge en bas */
         }
 
         .textArea {
@@ -59,20 +47,14 @@ D'accord, voici le code HTML de combat.html avec le style retro que vous avez fo
             max-width: 90%;
             line-height: 1.5;
             border-radius: 5px;
-            border: 2px solid #8a2be2;
-            /* Bordure violette */
+            border: 2px solid #8a2be2; /* Bordure violette */
             box-shadow: 1px 1px 1px #999;
             background-color: #000000;
-            color: #8a2be2;
-            /* Couleur violette */
-            width: 90%;
-            /* Largeur du textArea */
-            height: 200px;
-            /* Hauteur du textArea */
-            resize: none;
-            /* Empêche le redimensionnement du textarea */
-            margin-bottom: 20px;
-            /* Marge en bas */
+            color: #8a2be2; /* Couleur violette */
+            width: 90%; /* Largeur du textArea */
+            height: 200px; /* Hauteur du textArea */
+            resize: none; /* Empêche le redimensionnement du textarea */
+            margin-bottom: 20px; /* Marge en bas */
         }
 
         .textArea p {
@@ -85,14 +67,11 @@ D'accord, voici le code HTML de combat.html avec le style retro que vous avez fo
 
         .textArea textarea {
             background-color: #000000;
-            color: #8a2be2;
-            /* Couleur violette */
+            color: #8a2be2; /* Couleur violette */
             width: 100%;
             height: 100%;
-            border: none;
-            /* Supprimer la bordure par défaut */
-            outline: none;
-            /* Supprimer la bordure d'entrée en surbrillance */
+            border: none; /* Supprimer la bordure par défaut */
+            outline: none; /* Supprimer la bordure d'entrée en surbrillance */
             font-family: 'Press Start 2P', cursive;
         }
 
@@ -103,18 +82,15 @@ D'accord, voici le code HTML de combat.html avec le style retro que vous avez fo
 
         #temps_restant {
             font-weight: bold;
-            color: #8a2be2;
-            /* Couleur violette */
-            margin-bottom: 20px;
-            /* Marge en bas */
+            color: #8a2be2; /* Couleur violette */
+            margin-bottom: 20px; /* Marge en bas */
         }
 
         .warning {
             display: none;
             color: red;
             font-weight: bold;
-            margin-bottom: 20px;
-            /* Marge en bas */
+            margin-bottom: 20px; /* Marge en bas */
         }
     </style>
 </head>
@@ -132,7 +108,7 @@ D'accord, voici le code HTML de combat.html avec le style retro que vous avez fo
             <label for="story">CMD:</label>
             <div class="textArea">
                 <p>{{ user }}@eda#.prog></p>
-                <textarea id="story" name="codeInput" rows="13" required placeholder="Votre code..."></textarea>
+                <textarea id="story" name="code" rows="13" required placeholder="Votre code..."></textarea>
             </div>
             <input id="bouton_lancer" type="submit" value="Lancer" disabled><br>
         </form>
@@ -141,5 +117,5 @@ D'accord, voici le code HTML de combat.html avec le style retro que vous avez fo
     <div id="temps_restant">
         Temps restant : <span id="compteur">180</span>
     </div>
-    <script src="{{url_for('static', filename = 'verif.js')}}"></script>
-</body>
+
+   
