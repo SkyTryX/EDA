@@ -6,7 +6,7 @@ from json import load, dump, decoder
 from pathlib import Path
 from functions.display_map import load_map, SYMB
 from random import randint
-from functions.eda_sharp import *
+from functions.eda_sharp import spliter, lexxer, EdaExecutor, pos_x, pos_y, compileur
 from functions.verifie_code import eda_linter
 from functions.mailcheck import is_valid_mail
 from time import sleep
