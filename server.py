@@ -1,9 +1,9 @@
 from flask import Flask, render_template, request, session, redirect, jsonify
 from os.path import join, dirname, realpath
+from os import remove
 from sqlite3 import connect
 from uuid import uuid4
 from json import load, dump, decoder
-from pathlib import Path
 from functions.display_map import load_map, SYMB
 from random import randint
 from functions.eda_sharp import spliter, lexxer, EdaExecutor, pos_x, pos_y, shields, compileur
@@ -261,7 +261,7 @@ def result_game():
         data = load(file)
     with open(join(app.config['DATA_DIR'],f"matches/logs/{match}.json"), "w") as file_w:
         dump(data, file_w)
-    Path.unlink(join(app.config['DATA_DIR'],f"matches/running/{match}.json"))
+    remove(join(app.config['DATA_DIR'],f"matches/running/{match}.json"))
 
     # AJOUT DES STATISTIQUES (+1 VICTOIRE)
     elo = cur.execute("SELECT elo FROM stats where uuid=?;",(session['uuid'], )).fetchone()[0]
