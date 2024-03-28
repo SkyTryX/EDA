@@ -32,7 +32,7 @@ def connection_error():
     logging = cur.execute("SELECT mail, mdp FROM donnee WHERE mail=? AND mdp=?;",(request.form['mail'], request.form['mdp'])).fetchall()
     if len(logging) != 0:
         session['uuid'] = cur.execute("SELECT uuid FROM donnee WHERE mail=?;",(request.form['mail'],)).fetchone()[0]
-        return redirect("/")
+        return redirect("/?=in_website=True")
     else:
         return render_template("connection.html", erreur = True)
 
@@ -68,12 +68,6 @@ def profil():
     elo = cur.execute("SELECT elo FROM stats where uuid=?;",(session['uuid'], )).fetchone()[0]
     return render_template('profil.html', pseudo = pseudo, mail = mail, win = win, elo = elo)
 
-@app.route("/deconnexion")
-def deconnexion():
-    session["uuid"] = None
-    return redirect("/")
-
-
 @app.route("/suprcompte")
 def suprcompte():
     return render_template("suprcompte.html")
@@ -87,7 +81,7 @@ def supr():
         cur.execute("DELETE FROM stats where uuid=?;",(session['uuid'], ))
         cur.execute("DELETE FROM donnee where uuid=?;",(session['uuid'], ))
         con.commit()
-        return redirect("/deconnexion")
+        return redirect("/")
     else:
         return redirect("/suprcompte")
 @app.route("/presentation")
@@ -117,7 +111,7 @@ def queue():
             session["bot"] = "1"
             session["match"] = matchuuid
         elif data[request.args.get('gamemode')][0] == session["uuid"][0]: # SI UNE MEME PERSONNE QUEUE 2 FOIS
-            return redirect("/")
+            return redirect("/?in_website=True")
             
         else: # SI LE JOUEUR QUEUE DANS UNE QUEUE DEJA PLEINE
             other_player = data[request.args.get('gamemode')][0]
@@ -130,7 +124,7 @@ def queue():
                 dump({"p1":session["uuid"],"p2":other_player, "pos_p1": [0, 0], "pos_p2": [15, 10], "p1_finit":False, "p2_finit":False, "p1_submitted":False, "p2_submitted":False, "shields":[], "dispo":True, "winner":None}, file_match)        
             return redirect("/combat")
     else:
-        return redirect("/")
+        return redirect("/?in_website=True")
     return render_template("queue.html", gamemode=request.args.get("gamemode"))
 
 @app.route("/leave_queue")
@@ -141,7 +135,7 @@ def leave_queue():
         data[request.args.get("type")] = "None"
         with open(join(app.config['DATA_DIR'],"matches/queue.json"), "w") as file:
             dump(data, file)
-    return redirect("/")
+    return redirect("/?in_website=True")
 
 @app.route("/combat")
 def combat():
@@ -260,7 +254,7 @@ def verify_code():
 
 @app.route('/refresh', methods=['POST'])
 def refresh():
-    return redirect("/")
+    return redirect("/?in_website=True")
 
 @app.route('/combat/next-turn', methods=['POST'])
 def next_turn():
