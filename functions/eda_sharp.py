@@ -33,11 +33,11 @@ class EdaExecutor():
 
     def gauche(self, walls, i):
         if not [self.memory[pos_y]-i, self.memory[pos_x]] in walls or self.memory[pos_y] == 0:
-            self.memory[pos_y] += i
+            self.memory[pos_y] -= i
 
     def droite(self, walls, i):
         if not [self.memory[pos_y]+i, self.memory[pos_x]] in walls or self.memory[pos_y] == 15:
-            self.memory[pos_y] -= i
+            self.memory[pos_y] += i
 
     def wait(self, walls, i):
         pass

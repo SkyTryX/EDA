@@ -26,6 +26,11 @@ def index():
 @app.route("/connection")
 def connection():
     return render_template('connection.html', erreur=False)
+
+@app.route("/deconnexion")
+def deconnection():
+    session["uuid"] = None
+    return redirect("/")
     
 @app.route("/connect", methods=['POST'])
 def connection_error():
@@ -124,7 +129,7 @@ def queue():
             with open(join(app.config['DATA_DIR'],"matches/queue.json"), "w") as file:     
                 dump(data, file)   
             with open(join(app.config['DATA_DIR'],f"matches/running/{session['match']}.json"), "w") as file_match:
-                dump({"p1":session["uuid"],"p2":other_player, "pos_p1": [0, 0], "pos_p2": [15, 10], "p1_finit":False, "p2_finit":False, "p1_submitted":False, "p2_submitted":False, "shields":[], "dispo":True, "winner":None, "p1_points":0, "p2_points":0}, file_match)        
+                dump({"p1":session["uuid"],"p2":other_player, "pos_p1": [0, 0], "pos_p2": [15, 10], "coins": [], "p1_finit":False, "p2_finit":False, "p1_submitted":False, "p2_submitted":False, "shields":[], "dispo":True, "winner":None, "p1_points":0, "p2_points":0}, file_match)        
             return redirect("/combat")
     else:
         return redirect("/")
@@ -145,7 +150,7 @@ def combat():
     ennemy = '1' if session['bot'] == '2' else '2'
     with open(join(app.config['DATA_DIR'],f"matches/running/{session['match']}.json"), "r") as match_file:
         data_match = load(match_file)
-    model = load_map(join(app.config['DATA_DIR'],f'maps/map{randint(1,1)}.csv'))
+    model = load_map(join(app.config['DATA_DIR'],f'maps/map{randint(1,1)}.csv'), session["match"])
 
     cmds = None
     if session.get('last_code') != None:
@@ -179,9 +184,10 @@ def combat():
         for shield in interpreter.memory[shields]:
             data_match["shields"].append(shield)
         data_match[f"p{session['bot']}_finit"] = True
-        if data_match[f"pos_p{session['bot']}"] in model["coins"]:
+        if data_match[f"pos_p{session['bot']}"] in data_match["coins"]:
             data_match[f"p{session['bot']}_points"] += 1
-        model["coins"].remove(data_match[f"pos_p{session['bot']}"])
+            data_match["coins"].remove(data_match[f"pos_p{session['bot']}"])
+            print(data_match[f"p{session['bot']}_points"])
         with open(join(app.config['DATA_DIR'],f"matches/running/{session['match']}.json"), "w") as setdispo:
             dump(data_match, setdispo)
 
@@ -193,7 +199,10 @@ def combat():
                 except decoder.JSONDecodeError:
                     pass
             sleep(0.5)
-    
+    else:
+        data_match["coins"] = model["coins"]
+        with open(join(app.config['DATA_DIR'],f"matches/running/{session['match']}.json"), "w") as setcoins:
+            dump(data_match, setcoins)
     sleep(1)
     with open(join(app.config['DATA_DIR'],f"matches/running/{session['match']}.json"), "r") as match_file:
         data_match = load(match_file)
@@ -210,7 +219,7 @@ def combat():
                     map_str += SYMB['shield'][0]
                 else:
                     map_str += SYMB['wall']
-            elif [x, y] in model['coins']:
+            elif [x, y] in data_match['coins']:
                 if has_shield:
                     map_str += SYMB['shield'][1]
                 else:
@@ -281,6 +290,7 @@ def next_turn():
         with open(join(app.config['DATA_DIR'],f"matches/running/{session['match']}.json"), "r") as match_file:
             if load(match_file)[f"p{session['bot']}_submitted"]:
                 break
+    session['last_code'] = ""
     if request.form.get("code") == None:
         session['last_code'] = request.json['text']
     else:
