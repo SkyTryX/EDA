@@ -162,17 +162,16 @@ def combat():
         for func in cmds:
             in_shield = False
             for s in data_match["shields"]:
-                print(s)
-                if s[1] == session["bot"]:
+                if s[2] == session["bot"]:
                     in_shield = True
                     break 
             
             if in_shield:
                 pop_indexes = []
                 for i in range(len(data_match["shields"])):
-                    if data_match["shields"][i]["bot"] == session["bot"]:
-                        data_match["shields"][i]["tour"] -= 1
-                        if data_match["shields"][i]["tour"] == -1:
+                    if data_match["shields"][2] == session["bot"]:
+                        data_match["shields"][1] -= 1
+                        if data_match["shields"][1] == 0:
                             pop_indexes.append(i)
                 pop_indexes.reverse()
                 for index in pop_indexes:
@@ -182,12 +181,12 @@ def combat():
             data_match[f"pos_p{session['bot']}"] = [interpreter.memory[pos_x], interpreter.memory[pos_y]]
             data_match["dispo"] = not (session["bot"] == "1")
         for shield in interpreter.memory[shields]:
+            shield.append(session["bot"])
             data_match["shields"].append(shield)
         data_match[f"p{session['bot']}_finit"] = True
         if data_match[f"pos_p{session['bot']}"] in data_match["coins"]:
             data_match[f"p{session['bot']}_points"] += 1
             data_match["coins"].remove(data_match[f"pos_p{session['bot']}"])
-            print(data_match[f"p{session['bot']}_points"])
         with open(join(app.config['DATA_DIR'],f"matches/running/{session['match']}.json"), "w") as setdispo:
             dump(data_match, setdispo)
 
@@ -199,6 +198,12 @@ def combat():
                 except decoder.JSONDecodeError:
                     pass
             sleep(0.5)
+        for s in data_match["shields"]:
+            print(data_match[f"pos_p{session['bot']}"], s[0])
+            if data_match[f"pos_p{session['bot']}"] == [s[0][1],s[0][0]] and ennemy == s[2]:
+                data_match["winner"] = data_match["p"+ennemy]
+                with open(join(app.config['DATA_DIR'],f"matches/running/{session['match']}.json"), "w") as winner:
+                    dump(data_match, winner)
     else:
         data_match["coins"] = model["coins"]
         with open(join(app.config['DATA_DIR'],f"matches/running/{session['match']}.json"), "w") as setcoins:
@@ -212,6 +217,7 @@ def combat():
             has_shield = False
             for s in data_match["shields"]:
                 if [x, y] == s[0]:
+                    print([x,y])
                     has_shield = True
 
             if [x, y] in model['walls']:
@@ -238,6 +244,10 @@ def combat():
     data_match[f"p{session['bot']}_finit"] = False
     with open(join(app.config['DATA_DIR'],f"matches/running/{session['match']}.json"), "w") as match_file:
         dump(data_match, match_file)
+    with open(join(app.config['DATA_DIR'],f"matches/running/{session['match']}.json"), "r") as match_file:
+        data_match = load(match_file)
+        if data_match["winner"] != None:
+            return redirect("/result_game")
     return render_template('combat.html', map=map_str, bot=session["bot"])
 
 @app.route("/result_game")
@@ -254,13 +264,13 @@ def result_game():
     Path.unlink(join(app.config['DATA_DIR'],f"matches/running/{match}.json"))
 
     # AJOUT DES STATISTIQUES (+1 VICTOIRE)
+    elo = cur.execute("SELECT elo FROM stats where uuid=?;",(session['uuid'], )).fetchone()[0]
     if data["winner"] == session['uuid']:
         win = cur.execute("SELECT win FROM stats where uuid=?;",(session['uuid'], )).fetchone()[0] + 1
-        cur.execute("UPDATE stats SET win=? WHERE uuid=?;",( win, session['uuid'], )).fetchone()[0]
+        cur.execute("UPDATE stats SET win=? AND elo=? WHERE uuid=?;",(win, elo+15, session['uuid'],)).fetchone()[0]
         victoire = True
     else:
-        win = cur.execute("SELECT loss FROM stats where uuid=?;",(session['uuid'], )).fetchone()[0] + 1
-        cur.execute("UPDATE stats SET loss=? WHERE uuid=?;",( win, session['uuid'], )).fetchone()[0]
+        cur.execute("UPDATE stats SET elo=? WHERE uuid=?;",( elo-15, session['uuid'], )).fetchone()[0]
         victoire = False
     con.commit()
     return render_template('result_game.html', victoire=victoire)
