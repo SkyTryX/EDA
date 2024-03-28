@@ -17,7 +17,7 @@ app.secret_key = b'99b45274a4b2da7440ab249f17e718688b53b646f3dd57f23a9b298391617
 
 @app.route("/")
 def start():
-    return render_template('index.html')
+    return render_template('index.html', not_connected=session.get("uuid")== None)
 
 @app.route("/connection")
 def connection():

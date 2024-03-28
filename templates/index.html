@@ -88,10 +88,7 @@
 <body>
     <b>Project : EDA#</b>
     <br><br>
-    {% if session["modo"] %}
-    <a href="/moderation">Modération</a>
-    {% endif %}
-    {% if session.get("uuid") == None %}
+    {% if not_connected %}
     <a href="/connection">Se connecter</a><br>
     <a href="/inscription">S'inscrire</a>
     {% else %}
