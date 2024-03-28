@@ -16,9 +16,7 @@ app.config['DATA_DIR'] = join(dirname(realpath(__file__)),'static')
 app.secret_key = b'99b45274a4b2da7440ab249f17e718688b53b646f3dd57f23a9b29839161749f'
 
 @app.route("/")
-def start():
-    if request.args.get("in_website") == None:
-        ...
+def index():
     return render_template('index.html', not_connected=session.get("uuid")== None)
 
 @app.route("/connection")
@@ -32,7 +30,7 @@ def connection_error():
     logging = cur.execute("SELECT mail, mdp FROM donnee WHERE mail=? AND mdp=?;",(request.form['mail'], request.form['mdp'])).fetchall()
     if len(logging) != 0:
         session['uuid'] = cur.execute("SELECT uuid FROM donnee WHERE mail=?;",(request.form['mail'],)).fetchone()[0]
-        return redirect("/?=in_website=True")
+        return redirect("/")
     else:
         return render_template("connection.html", erreur = True)
 
@@ -111,7 +109,7 @@ def queue():
             session["bot"] = "1"
             session["match"] = matchuuid
         elif data[request.args.get('gamemode')][0] == session["uuid"][0]: # SI UNE MEME PERSONNE QUEUE 2 FOIS
-            return redirect("/?in_website=True")
+            return redirect("/")
             
         else: # SI LE JOUEUR QUEUE DANS UNE QUEUE DEJA PLEINE
             other_player = data[request.args.get('gamemode')][0]
@@ -124,7 +122,7 @@ def queue():
                 dump({"p1":session["uuid"],"p2":other_player, "pos_p1": [0, 0], "pos_p2": [15, 10], "p1_finit":False, "p2_finit":False, "p1_submitted":False, "p2_submitted":False, "shields":[], "dispo":True, "winner":None}, file_match)        
             return redirect("/combat")
     else:
-        return redirect("/?in_website=True")
+        return redirect("/")
     return render_template("queue.html", gamemode=request.args.get("gamemode"))
 
 @app.route("/leave_queue")
@@ -135,7 +133,7 @@ def leave_queue():
         data[request.args.get("type")] = "None"
         with open(join(app.config['DATA_DIR'],"matches/queue.json"), "w") as file:
             dump(data, file)
-    return redirect("/?in_website=True")
+    return redirect("/")
 
 @app.route("/combat")
 def combat():
@@ -254,7 +252,7 @@ def verify_code():
 
 @app.route('/refresh', methods=['POST'])
 def refresh():
-    return redirect("/?in_website=True")
+    return redirect("/")
 
 @app.route('/combat/next-turn', methods=['POST'])
 def next_turn():
