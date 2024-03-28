@@ -129,7 +129,7 @@ def queue():
             with open(join(app.config['DATA_DIR'],"matches/queue.json"), "w") as file:     
                 dump(data, file)   
             with open(join(app.config['DATA_DIR'],f"matches/running/{session['match']}.json"), "w") as file_match:
-                dump({"p1":session["uuid"],"p2":other_player, "pos_p1": [0, 0], "pos_p2": [15, 10], "coins": [], "p1_finit":False, "p2_finit":False, "p1_submitted":False, "p2_submitted":False, "shields":[], "dispo":True, "winner":None, "p1_points":0, "p2_points":0}, file_match)        
+                dump({"p1":session["uuid"],"p2":other_player, "pos_p1": [0, 0], "pos_p2": [15, 10], "coins": [], "p1_finit":False, "p2_finit":False, "p1_submitted":False, "p2_submitted":False, "shields":[], "winner":None, "p1_points":0, "p2_points":0}, file_match)        
             return redirect("/combat")
     else:
         return redirect("/")
@@ -147,49 +147,55 @@ def leave_queue():
 
 @app.route("/combat")
 def combat():
+    # INITIALISATION
     ennemy = '1' if session['bot'] == '2' else '2'
     with open(join(app.config['DATA_DIR'],f"matches/running/{session['match']}.json"), "r") as match_file:
         data_match = load(match_file)
     model = load_map(join(app.config['DATA_DIR'],f'maps/map{randint(1,1)}.csv'), session["match"])
 
-    cmds = None
+    # SI LE CODE A ETE SUBMIT
     if session.get('last_code') != None:
-        with open(join(app.config['DATA_DIR'],f"matches/running/{session['match']}.json"), "w") as match_file:
-            dump(data_match, match_file)
-
+        
+        # ON CREE L'INTERPRETEUR
         interpreter = EdaExecutor(data_match[f"pos_p{session['bot']}"][0], data_match[f"pos_p{session['bot']}"][1], [])
-        cmds = compileur(lexxer(session['last_code']), interpreter)
-        for func in cmds:
-            in_shield = False
-            for s in data_match["shields"]:
-                if s[2] == session["bot"]:
-                    in_shield = True
-                    break 
-            
-            if in_shield:
-                pop_indexes = []
-                for i in range(len(data_match["shields"])):
-                    if data_match["shields"][2] == session["bot"]:
-                        data_match["shields"][1] -= 1
-                        if data_match["shields"][1] == 0:
-                            pop_indexes.append(i)
-                pop_indexes.reverse()
-                for index in pop_indexes:
-                    data_match["shields"].pop(index)
-            else:
-                func[0](model["walls"], int(func[1][0]))
-            data_match[f"pos_p{session['bot']}"] = [interpreter.memory[pos_x], interpreter.memory[pos_y]]
-            data_match["dispo"] = not (session["bot"] == "1")
+        cmds = compileur(lexxer(session['last_code']), interpreter) # A CHANGER
+
+        #CHECK SI EN SHIELD
+        in_shield = False
+        for s in data_match["shields"]:
+            if s[2] == session["bot"]:
+                in_shield = True
+                break 
+        
+        # SI OUI
+        if in_shield:
+            pop_indexes = []
+            for i in range(len(data_match["shields"])):
+                if data_match["shields"][2] == session["bot"]:
+                    data_match["shields"][1] -= 1
+                    if data_match["shields"][1] == 0:
+                        pop_indexes.append(i)
+            pop_indexes.reverse()
+            for index in pop_indexes:
+                data_match["shields"].pop(index)
+
+        else: # SI NON
+            #func[0](model["walls"], int(func[1][0]))
+            pass
+        
+        # SAUVEGARDE DES CHANGEMENTS FAIT PAR LA FONCTION
+        data_match[f"pos_p{session['bot']}"] = [interpreter.memory[pos_x], interpreter.memory[pos_y]]
         for shield in interpreter.memory[shields]:
             shield.append(session["bot"])
             data_match["shields"].append(shield)
-        data_match[f"p{session['bot']}_finit"] = True
         if data_match[f"pos_p{session['bot']}"] in data_match["coins"]:
             data_match[f"p{session['bot']}_points"] += 1
             data_match["coins"].remove(data_match[f"pos_p{session['bot']}"])
         with open(join(app.config['DATA_DIR'],f"matches/running/{session['match']}.json"), "w") as setdispo:
             dump(data_match, setdispo)
 
+        # ATTENTE DE LEXECUTION DE L'AUTRE JOUEUR
+        data_match[f"p{session['bot']}_finit"] = True
         while True:
             with open(join(app.config['DATA_DIR'],f"matches/running/{session['match']}.json"), "r") as check_dispo:
                 try:
@@ -198,16 +204,20 @@ def combat():
                 except decoder.JSONDecodeError:
                     pass
             sleep(0.5)
+        
+        # CHECK SI QUELQU'UN EST MORT DE SHIELD
         for s in data_match["shields"]:
-            print(data_match[f"pos_p{session['bot']}"], s[0])
             if data_match[f"pos_p{session['bot']}"] == [s[0][1],s[0][0]] and ennemy == s[2]:
                 data_match["winner"] = data_match["p"+ennemy]
                 with open(join(app.config['DATA_DIR'],f"matches/running/{session['match']}.json"), "w") as winner:
                     dump(data_match, winner)
     else:
+        # SI ON A LA PARTIE QUI N'A PAS COMMENCE, ON MET LES COINS DANS LE JSON MATCH
         data_match["coins"] = model["coins"]
         with open(join(app.config['DATA_DIR'],f"matches/running/{session['match']}.json"), "w") as setcoins:
             dump(data_match, setcoins)
+    
+    # ON RENDER LA MAP
     sleep(1)
     with open(join(app.config['DATA_DIR'],f"matches/running/{session['match']}.json"), "r") as match_file:
         data_match = load(match_file)
@@ -240,14 +250,17 @@ def combat():
                 else:
                     map_str += SYMB['free']
         map_str += "\n"
-    data_match[f"p{session['bot']}_submitted"] = False
+
+    # RESET DE LA SYNCRO
     data_match[f"p{session['bot']}_finit"] = False
     with open(join(app.config['DATA_DIR'],f"matches/running/{session['match']}.json"), "w") as match_file:
         dump(data_match, match_file)
     with open(join(app.config['DATA_DIR'],f"matches/running/{session['match']}.json"), "r") as match_file:
         data_match = load(match_file)
-        if data_match["winner"] != None:
-            return redirect("/result_game")
+
+    # SI ON A UN GAGNANT, ON ARRETE
+    if data_match["winner"] != None:
+        return redirect("/result_game")
     return render_template('combat.html', map=map_str, bot=session["bot"])
 
 @app.route("/result_game")
