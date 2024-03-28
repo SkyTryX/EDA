@@ -7,6 +7,92 @@
     <title>Combat Map</title>
     <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Press+Start+2P">
     <link rel="icon" type="image/x-icon" href="/static/css/favicon.ico">
+    <style>
+        body {
+            background-color: #000;
+            color: #8a2be2; /* Couleur violette */
+            font-family: 'Press Start 2P', cursive;
+            text-align: center;
+            margin: 0; /* Supprimer les marges par défaut */
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .map-container {
+            width: 50%; /* Prend la moitié de la largeur de la fenêtre */
+            height: 50vh; /* Prend la moitié de la hauteur de la fenêtre */
+            overflow: auto; /* Permet le défilement si nécessaire */
+            border: 2px solid #8a2be2; /* Bordure violette */
+            margin-bottom: 20px; /* Marge en bas */
+        }
+
+        .map-container pre {
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            font-size: 1.5em;
+            line-height: 1.5;
+        }
+
+        .test {
+            color: #8a2be2; /* Couleur violette */
+            margin-bottom: 20px; /* Marge en bas */
+        }
+
+        .textArea {
+            font-size: 0.8em;
+            letter-spacing: 1px;
+            padding: 5px;
+            max-width: 90%;
+            line-height: 1.5;
+            border-radius: 5px;
+            border: 2px solid #8a2be2; /* Bordure violette */
+            box-shadow: 1px 1px 1px #999;
+            background-color: #000000;
+            color: #8a2be2; /* Couleur violette */
+            width: 90%; /* Largeur du textArea */
+            height: 200px; /* Hauteur du textArea */
+            resize: none; /* Empêche le redimensionnement du textarea */
+            margin-bottom: 20px; /* Marge en bas */
+        }
+
+        .textArea p {
+            font-size: 1.1em;
+            font-family: monospace;
+            letter-spacing: 1px;
+            padding: 0;
+            margin: 0;
+        }
+
+        .textArea textarea {
+            background-color: #000000;
+            color: #8a2be2; /* Couleur violette */
+            width: 100%;
+            height: 100%;
+            border: none; /* Supprimer la bordure par défaut */
+            outline: none; /* Supprimer la bordure d'entrée en surbrillance */
+            font-family: 'Press Start 2P', cursive;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 10px;
+        }
+
+        #temps_restant {
+            font-weight: bold;
+            color: #8a2be2; /* Couleur violette */
+            margin-bottom: 20px; /* Marge en bas */
+        }
+
+        .warning {
+            display: none;
+            color: red;
+            font-weight: bold;
+            margin-bottom: 20px; /* Marge en bas */
+        }
+    </style>
 </head>
 
 <body>
@@ -17,27 +103,26 @@
     </div>
     <div class="test">
         Vous jouez en {{ gamemode }} <br><br>
-        Vous êtes {%if session.get("bot") == "1"%} @ {% else %} # {% endif %}
+        Vous êtes {% if session.get("bot") == "1" %} @ {% else %} # {% endif %}
         <form action="/combat/next-turn" method="POST">
             <label for="story">CMD:</label>
             <div class="textArea">
-                <p>{{user}}@eda#.prog></p>
+                <p>{{ user }}@eda#.prog></p>
                 <textarea id="story" name="code" rows="13" required placeholder="Votre code..."></textarea>
             </div>
             <input id="bouton_lancer" type="submit" value="Lancer" disabled><br>
+        </form>
     </div>
 
     <div id="temps_restant">
         Temps restant : <span id="compteur">180</span>
     </div>
-    </form>
 
     <!-- message d'erreur et conseils -->
     <div id="alert" class="warning">Votre code n'est pas valide !</div>
     <div id="error-message" class="warning"></div>
 
     <script src="{{ url_for('static', filename='verif.js') }}"></script>
-    </div>
 </body>
 
 </html>
