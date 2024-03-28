@@ -124,7 +124,7 @@ def queue():
             with open(join(app.config['DATA_DIR'],"matches/queue.json"), "w") as file:     
                 dump(data, file)   
             with open(join(app.config['DATA_DIR'],f"matches/running/{session['match']}.json"), "w") as file_match:
-                dump({"p1":session["uuid"],"p2":other_player, "pos_p1": [0, 0], "pos_p2": [15, 10], "p1_finit":False, "p2_finit":False, "p1_submitted":False, "p2_submitted":False, "shields":[], "dispo":True, "winner":None}, file_match)        
+                dump({"p1":session["uuid"],"p2":other_player, "pos_p1": [0, 0], "pos_p2": [15, 10], "p1_finit":False, "p2_finit":False, "p1_submitted":False, "p2_submitted":False, "shields":[], "dispo":True, "winner":None, "p1_points":0, "p2_points":0}, file_match)        
             return redirect("/combat")
     else:
         return redirect("/")
@@ -179,6 +179,9 @@ def combat():
         for shield in interpreter.memory[shields]:
             data_match["shields"].append(shield)
         data_match[f"p{session['bot']}_finit"] = True
+        if data_match[f"pos_p{session['bot']}"] in model["coins"]:
+            data_match[f"p{session['bot']}_points"] += 1
+        model["coins"].remove(data_match[f"pos_p{session['bot']}"])
         with open(join(app.config['DATA_DIR'],f"matches/running/{session['match']}.json"), "w") as setdispo:
             dump(data_match, setdispo)
 
@@ -207,6 +210,11 @@ def combat():
                     map_str += SYMB['shield'][0]
                 else:
                     map_str += SYMB['wall']
+            elif [x, y] in model['coins']:
+                if has_shield:
+                    map_str += SYMB['shield'][1]
+                else:
+                    map_str += SYMB['coin']
             elif [x, y] == data_match["pos_p1"]:
                 map_str += SYMB['bot'][0]
             elif [x, y] == data_match["pos_p2"]:
