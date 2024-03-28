@@ -158,7 +158,8 @@ def combat():
         
         # ON CREE L'INTERPRETEUR
         interpreter = EdaExecutor(data_match[f"pos_p{session['bot']}"][0], data_match[f"pos_p{session['bot']}"][1], [])
-        cmds = compileur(lexxer(session['last_code']), interpreter) # A CHANGER
+        if type(session["last_code"]) == str:
+            session["last_code"] = compileur(lexxer(session['last_code']), interpreter) # A CHANGER
 
         #CHECK SI EN SHIELD
         in_shield = False
@@ -180,8 +181,10 @@ def combat():
                 data_match["shields"].pop(index)
 
         else: # SI NON
-            #func[0](model["walls"], int(func[1][0]))
-            pass
+            session["last_code"][0][0](model["walls"], int(session["last_code"][0][1][0]))
+            session["last_code"].pop(0)
+            if len(session["lastçcode"]) == 0:
+                data_match[f"p{session['bot']}_done"] = True
         
         # SAUVEGARDE DES CHANGEMENTS FAIT PAR LA FONCTION
         data_match[f"pos_p{session['bot']}"] = [interpreter.memory[pos_x], interpreter.memory[pos_y]]
@@ -258,10 +261,20 @@ def combat():
     with open(join(app.config['DATA_DIR'],f"matches/running/{session['match']}.json"), "r") as match_file:
         data_match = load(match_file)
 
+    if data_match[f"p1_done"] and data_match[f"p2_done"]: # SI ON A DEJA TOURNE TOUT LE CODE
+        if data_match["p1_points"] > data_match["p2_points"]:
+            data_match["winner"] = data_match["p1"]
+        elif data_match["p2_points"] > data_match["p1_points"]:
+            data_match["winner"] = data_match["p2"]
+        else:
+            ... # CAS EGALITE
+        with open(join(app.config['DATA_DIR'],f"matches/running/{session['match']}.json"), "w") as match_file:
+            dump(data_match, match_file)
+
     # SI ON A UN GAGNANT, ON ARRETE
     if data_match["winner"] != None:
         return redirect("/result_game")
-    return render_template('combat.html', map=map_str, bot=session["bot"])
+    return render_template('combat.html', map=map_str, bot=session["bot"]) # AJOUT DUNE VARIABLE PERMETTANT DEXECUTER DU JAVASCRIPT SI ON EXECUTE CODE
 
 @app.route("/result_game")
 def result_game():
