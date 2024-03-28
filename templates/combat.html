@@ -10,7 +10,7 @@
     <style>
         body {
             background-color: #000;
-            color: #8a2be2; /* Couleur violette */
+            color: rgb(175, 0, 161); /* Couleur violette */
             font-family: 'Press Start 2P', cursive;
             text-align: center;
             margin: 0; /* Supprimer les marges par défaut */
@@ -21,10 +21,10 @@
         }
 
         .map-container {
-            width: 50%; /* Prend la moitié de la largeur de la fenêtre */
-            height: 50vh; /* Prend la moitié de la hauteur de la fenêtre */
+            width: 100vw; /* Prend toute la largeur de la fenêtre */
+            height: 100vh; /* Prend toute la hauteur de la fenêtre */
             overflow: auto; /* Permet le défilement si nécessaire */
-            border: 2px solid #8a2be2; /* Bordure violette */
+            border: 2px solid rgb(175, 0, 161); /* Bordure violette */
             margin-bottom: 20px; /* Marge en bas */
         }
 
@@ -36,7 +36,7 @@
         }
 
         .test {
-            color: #8a2be2; /* Couleur violette */
+            color: rgb(175, 0, 161); /* Couleur violette */
             margin-bottom: 20px; /* Marge en bas */
         }
 
@@ -50,7 +50,7 @@
             border: 2px solid #8a2be2; /* Bordure violette */
             box-shadow: 1px 1px 1px #999;
             background-color: #000000;
-            color: #8a2be2; /* Couleur violette */
+            color: rgb(175, 0, 161); /* Couleur violette */
             width: 90%; /* Largeur du textArea */
             height: 200px; /* Hauteur du textArea */
             resize: none; /* Empêche le redimensionnement du textarea */
@@ -67,7 +67,7 @@
 
         .textArea textarea {
             background-color: #000000;
-            color: #8a2be2; /* Couleur violette */
+            color: rgb(175, 0, 161); /* Couleur violette */
             width: 100%;
             height: 100%;
             border: none; /* Supprimer la bordure par défaut */
@@ -82,7 +82,7 @@
 
         #temps_restant {
             font-weight: bold;
-            color: #8a2be2; /* Couleur violette */
+            color: rgb(175, 0, 161); /* Couleur violette */
             margin-bottom: 20px; /* Marge en bas */
         }
 
@@ -98,7 +98,7 @@
 <body>
     <div class="map-container">
         <pre id="zone_map" style="white-space: pre-wrap; overflow: auto;">
-{{map}}
+            {{map}}
         </pre>
     </div>
     <div class="test">
@@ -124,5 +124,5 @@
 
     <script src="{{ url_for('static', filename='verif.js') }}"></script>
 </body>
-
 </html>
+
