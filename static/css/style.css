@@ -26,9 +26,13 @@
 
 .test {
   position: relative; /* utiliser ablsolute si besoin */
-  top: 50%;
+  /* top: 50%; */
   transform: translateY(-50%);
   color: rgb(175, 0, 161);
+  /* modif */
+  position: fixed;
+    top: 10px;
+    right: 10px;
 }
 
 label {
@@ -43,3 +47,7 @@ body {
 a {
   text-decoration: none;
 }
+
+#temps_restant{ position: fixed;
+  top: 10px;
+  left: 10px;}

@@ -24,8 +24,8 @@
             width: 100vw; /* Prend toute la largeur de la fenêtre */
             height: 100vh; /* Prend toute la hauteur de la fenêtre */
             overflow: auto; /* Permet le défilement si nécessaire */
-            border: 2px solid rgb(175, 0, 161); /* Bordure violette */
-            margin-bottom: 20px; /* Marge en bas */
+            /* border: 2px solid rgb(175, 0, 161); Bordure violette */
+            /* margin-bottom: 20px; Marge en bas */
         }
 
         .map-container pre {
@@ -38,6 +38,9 @@
         .test {
             color: rgb(175, 0, 161); /* Couleur violette */
             margin-bottom: 20px; /* Marge en bas */
+            position: fixed;
+            top: 10px;
+            right: 10px;
         }
 
         .textArea {
@@ -84,6 +87,9 @@
             font-weight: bold;
             color: rgb(175, 0, 161); /* Couleur violette */
             margin-bottom: 20px; /* Marge en bas */
+            position: fixed;
+            top: 10px;
+            left: 10px;
         }
 
         .warning {
@@ -91,6 +97,13 @@
             color: red;
             font-weight: bold;
             margin-bottom: 20px; /* Marge en bas */
+            position: fixed;
+            bottom: 50px;
+        }
+
+        .alert{
+            position: fixed;
+            bottom: 25px;
         }
     </style>
 </head>
@@ -119,7 +132,7 @@
     </div>
 
     <!-- message d'erreur et conseils -->
-    <div id="alert" class="warning">Votre code n'est pas valide !</div>
+    <div id="alert" class="warning alert">Votre code n'est pas valide !</div>
     <div id="error-message" class="warning"></div>
 
     <script src="{{ url_for('static', filename='verif.js') }}"></script>

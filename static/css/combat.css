@@ -6,6 +6,8 @@
   height: 414px;
   /* a changer si besoin */
   z-index: 1000;
+  margin: 0 !important;
+  border: none !important;
 }
 
 .yellow {
@@ -28,3 +30,11 @@ pre {
   font-size: 1.5em;
   color: rgb(175, 0, 161);
 }
+
+
+.warning{
+  position: fixed !important; 
+  bottom: 48px !important; 
+}
+
+#error-message{ bottom: 20px !important}

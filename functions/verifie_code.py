@@ -66,4 +66,4 @@ def spliter(code:str)->list[str|int]:
                 prog.append(int(temp))   
             temp = ""
     if temp != "": prog.append(temp)  
-    return prog       
+    return prog 

@@ -39,10 +39,8 @@ verifyAfterDelay = () => {
             } else {
                 alert.style.display = 'block' // Afficher le message d'erreur avec la bonne erreur
                 boutonLancer.disabled = true // Désactiver le bouton pour commit le code
-                if (response.error !== null) {
                     error_message.innerText = response.error // Afficher l'erreur
                     error_message.style.display = 'block' // Afficher le message d'erreur
-                }
             }
         }
     }
