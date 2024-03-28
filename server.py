@@ -15,6 +15,10 @@ app = Flask(__name__)
 app.config['DATA_DIR'] = join(dirname(realpath(__file__)),'static')
 app.secret_key = b'99b45274a4b2da7440ab249f17e718688b53b646f3dd57f23a9b29839161749f'
 
+@app.errorhandler(404)
+def notfound(e):
+    return render_template("notfound.html")
+
 @app.route("/")
 def index():
     return render_template('index.html', not_connected=session.get("uuid")== None)
@@ -82,6 +86,7 @@ def supr():
         return redirect("/")
     else:
         return redirect("/suprcompte")
+
 @app.route("/presentation")
 def presentation():
     return render_template('presentation.html')
@@ -162,7 +167,7 @@ def combat():
                 for i in range(len(data_match["shields"])):
                     if data_match["shields"][i]["bot"] == session["bot"]:
                         data_match["shields"][i]["tour"] -= 1
-                        if data_match["shields"][i]["tour"] == 0:
+                        if data_match["shields"][i]["tour"] == -1:
                             pop_indexes.append(i)
                 pop_indexes.reverse()
                 for index in pop_indexes:
@@ -194,7 +199,7 @@ def combat():
         for y in range(model['h']):
             has_shield = False
             for s in data_match["shields"]:
-                if [x, y] == s["coords"]:
+                if [x, y] == s[0]:
                     has_shield = True
 
             if [x, y] in model['walls']:
