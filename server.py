@@ -246,8 +246,17 @@ def combat():
         dump(data_match, match_file)
     with open(join(app.config['DATA_DIR'],f"matches/running/{session['match']}.json"), "r") as match_file:
         data_match = load(match_file)
-        if data_match["winner"] != None:
-            return redirect("/result_game")
+    if session["last_code"] != None:
+        if data_match["p2_points"] > data_match["p1_points"]:
+            data_match["winner"] = data_match["p1"]
+        elif data_match["p1_points"] > data_match["p2_points"]:
+            data_match["winner"] = data_match["p2"]
+        else:
+            data_match["winner"] = "EGALITE"
+    with open(join(app.config['DATA_DIR'],f"matches/running/{session['match']}.json"), "w") as match_file:
+        dump(data_match, match_file)
+    if data_match["winner"] != None:
+        return redirect("/result_game")
     return render_template('combat.html', map=map_str, bot=session["bot"])
 
 @app.route("/result_game")
@@ -255,25 +264,27 @@ def result_game():
     con = connect(join(app.config['DATA_DIR'],'database/compte.db'))
     cur = con.cursor()
     match = session["match"]
-
-    # DEPLACEMENT DU FICHIER JSON
+    
     with open(join(app.config['DATA_DIR'],f"matches/running/{match}.json"), "r") as file:
         data = load(file)
+
+    # DEPLACEMENT DU FICHIER JSON
     with open(join(app.config['DATA_DIR'],f"matches/logs/{match}.json"), "w") as file_w:
         dump(data, file_w)
-    remove(join(app.config['DATA_DIR'],f"matches/running/{match}.json"))
-
     # AJOUT DES STATISTIQUES (+1 VICTOIRE)
     elo = cur.execute("SELECT elo FROM stats where uuid=?;",(session['uuid'], )).fetchone()[0]
     if data["winner"] == session['uuid']:
         win = cur.execute("SELECT win FROM stats where uuid=?;",(session['uuid'], )).fetchone()[0] + 1
-        cur.execute("UPDATE stats SET win=? AND elo=? WHERE uuid=?;",(win, elo+15, session['uuid'],)).fetchone()[0]
+        cur.execute("UPDATE stats SET win=? AND elo=? WHERE uuid=?;",(win, elo+15, session['uuid'],))
         victoire = True
+    elif data["winner"] == "EGALITE":
+        victoire = None
     else:
-        cur.execute("UPDATE stats SET elo=? WHERE uuid=?;",( elo-15, session['uuid'], )).fetchone()[0]
+        cur.execute("UPDATE stats SET elo=? WHERE uuid=?;",( elo-15, session['uuid'], ))
         victoire = False
     con.commit()
     return render_template('result_game.html', victoire=victoire)
+
 
 @app.route("/api/queue")
 def return_queue():
