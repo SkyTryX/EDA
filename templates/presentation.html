@@ -4,22 +4,48 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Présentation</title>*
+    <title>Présentation</title>
     <link rel="icon" type="image/x-icon" href="/static/css/favicon.ico">
+    <style>
+        body {
+            background-color: #000;
+            color: rgb(175, 0, 161); /* Couleur violette */
+            font-family: 'Press Start 2P', cursive;
+            text-align: center;
+            padding-top: 20%; /* Pour placer le contenu au centre */
+            margin: 0; /* Supprimer les marges par défaut */
+        }
+
+        a {
+            color: #fff;
+            text-decoration: none;
+            font-family: 'Press Start 2P', cursive;
+            margin-top: 20px; /* Marge en haut du lien */
+            display: inline-block; /* Pour que le lien se comporte comme un bloc */
+        }
+
+        a:hover {
+            text-decoration: underline;
+        }
+
+        p {
+            margin: 20px 0; /* Marge autour des paragraphes */
+        }
+    </style>
 </head>
 
 <body>
-    Lien vidéo: ...
-    Lien GitLab: https://gitlab.com/groupe_eda/eda/
+    <p>Lien vidéo: ...</p>
+    <p>Lien GitLab: <a href="https://gitlab.com/groupe_eda/eda/">https://gitlab.com/groupe_eda/eda/</a></p>
 
-    Au lancement de la partie, vous avez exactement 180 secondes pour coder le comportement de votre robot dans le
-    langage que nous avons créer : EDA#, une fois la fin du temps imparti, ou si les deux joueurs ont finit leur code en
-    avance, les robots exécutent le code. Les robots ont alors deux objectif qui définira le vainqueur, soit détruire le
-    robot adverse avec l'action "shield", qui fait exploser l'adversaire si il rentre dans la zone de couverture ( qui
-    est de un bloc autour du robot qui utilise "shield"), soit récupérer le plus de pièces possible en marchant dessus.
-    Après que les deux robots ont finit d'exécuter leurs instructions respective, le vainqueur sera le dernier robot en
-    vie, ou, dans le cas où les deux ont survécu, celui qui aura amassé le plus de pièces durant la partie. Vous serez
-    ensuite redirigé vers l'écran de fin de partie annonçant le gagnant
+    <p>Au lancement de la partie, vous avez exactement 180 secondes pour coder le comportement de votre robot dans le
+        langage que nous avons créé : EDA#. Une fois la fin du temps imparti, ou si les deux joueurs ont fini leur code en
+        avance, les robots exécutent le code. Les robots ont alors deux objectifs qui définiront le vainqueur : soit détruire le
+        robot adverse avec l'action "shield", qui fait exploser l'adversaire s'il rentre dans la zone de couverture (qui
+        est d'un bloc autour du robot qui utilise "shield"), soit récupérer le plus de pièces possible en marchant dessus.
+        Après que les deux robots ont fini d'exécuter leurs instructions respectives, le vainqueur sera le dernier robot en
+        vie, ou, dans le cas où les deux ont survécu, celui qui aura amassé le plus de pièces durant la partie. Vous serez
+        ensuite redirigé vers l'écran de fin de partie annonçant le gagnant</p>
     <a href="/">Retour</a>
 </body>
 

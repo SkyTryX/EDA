@@ -4,8 +4,34 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+    <title>Résultats du jeu</title>
     <link rel="icon" type="image/x-icon" href="/static/css/favicon.ico">
+    <style>
+        body {
+            background-color: #000;
+            color: rgb(175, 0, 161); /* Couleur violette */
+            font-family: 'Press Start 2P', cursive;
+            text-align: center;
+            padding-top: 20%; /* Pour placer le contenu au centre */
+            margin: 0; /* Supprimer les marges par défaut */
+        }
+
+        i {
+            color: #fff; /* Couleur blanche pour l'italique */
+        }
+
+        a {
+            color: #fff;
+            text-decoration: none;
+            font-family: 'Press Start 2P', cursive;
+            margin-top: 20px; /* Marge en haut du lien */
+            display: inline-block; /* Pour que le lien se comporte comme un bloc */
+        }
+
+        a:hover {
+            text-decoration: underline;
+        }
+    </style>
 </head>
 
 <body>
@@ -14,7 +40,7 @@
     {% if victoire %}
     VICTOIRE
     {% else %}
-    DEFAIITE
+    DEFAITE
     {% endif %}
     <a href="/">Exit</a>
 </body>
