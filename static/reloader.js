@@ -2,4 +2,4 @@ function redirecting() {
     location.href = '/combat';
 }
 
-setTimeout(function () { redirecting(); }, 5000);
+setTimeout(function () { redirecting(); }, 1000);

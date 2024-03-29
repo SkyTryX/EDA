@@ -5,7 +5,7 @@ from uuid import uuid4
 from json import load, dump, decoder
 from functions.display_map import load_map, SYMB
 from random import randint
-from functions.eda_sharp import spliter, lexxer, EdaExecutor, pos_x, pos_y, shields, compileur
+from functions.eda_sharp import spliter, lexxer, EdaExecutor, pos_x, pos_y, shields, parser, OP
 from functions.verifie_code import eda_linter
 from functions.mailcheck import is_valid_mail
 from time import sleep
@@ -146,7 +146,6 @@ def leave_queue():
 
 @app.route("/combat")
 def combat():
-    print("TEST")
     # INITIALISATION
     ennemy = '1' if session['bot'] == '2' else '2'
     with open(join(app.config['DATA_DIR'],f"matches/running/{session['match']}.json"), "r") as match_file:
@@ -158,9 +157,8 @@ def combat():
         
         # ON CREE L'INTERPRETEUR
         interpreter = EdaExecutor(data_match[f"pos_p{session['bot']}"][0], data_match[f"pos_p{session['bot']}"][1], [])
-        if isinstance(session["last_code"], str) :
-            
-            session["last_code"] = compileur(lexxer(session['last_code']), interpreter)
+        if type(session["last_code"]) == str:
+            session["last_code"] = lexxer(session['last_code'])
 
         #CHECK SI EN SHIELD
         in_shield = False
@@ -181,12 +179,54 @@ def combat():
             for index in pop_indexes:
                 data_match["shields"].pop(index)
 
-        else: # SI NON
+        elif len(session["last_code"]) != 0: # SI NON
             print(session["last_code"])
-            session["last_code"][0][0](model["walls"], int(session["last_code"][0][1][0]))
-            session["last_code"].pop(0)
-            if len(session["last_code"]) == 0:
-                data_match[f"p{session['bot']}_done"] = True
+            if type(session["last_code"][0]) == OP:
+                match session["last_code"][0].op_code:
+                    case "gauche":
+                        interpreter.gauche(model["walls"], int(session["last_code"][0].args[0]))
+                    case "droite":
+                        interpreter.droite(model["walls"], int(session["last_code"][0].args[0]))
+                    case "haut":
+                        interpreter.haut(model["walls"], int(session["last_code"][0].args[0]))
+                    case "bas":
+                        interpreter.bas(model["walls"], int(session["last_code"][0].args[0]))
+                    case "wait":
+                        interpreter.bas(model["walls"], int(session["last_code"][0].args[0]))
+                    case "shield":
+                        interpreter.bas(model["walls"], int(session["last_code"][0].args[0]))
+                    case "repeat":
+                        res = parser(session["last_code"][0].args[1][0], interpreter)
+                        res[0](model["walls"], int(res[1][0]))
+                        session["last_code"][0].args[0] = str(int(session["last_code"][0].args[0])-1)
+                        if session["last_code"][0].args[0] == "0":
+                            session["last_code"][0] = session["last_code"][0][1:]
+                if session["last_code"][0].op_code != "repeat":
+                    session["last_code"] = session["last_code"][1:]
+            else:
+                match session["last_code"][0]["op_code"]:
+                    case "gauche":
+                        interpreter.gauche(model["walls"], int(session["last_code"][0]["args"][0]))
+                    case "droite":
+                        interpreter.droite(model["walls"], int(session["last_code"][0]["args"][0]))
+                    case "haut":
+                        interpreter.haut(model["walls"], int(session["last_code"][0]["args"][0]))
+                    case "bas":
+                        interpreter.bas(model["walls"], int(session["last_code"][0]["args"][0]))
+                    case "wait":
+                        interpreter.bas(model["walls"], int(session["last_code"][0]["args"][0]))
+                    case "shield":
+                        interpreter.bas(model["walls"], int(session["last_code"][0]["args"][0]))
+                    case "repeat":
+                        res = parser(session["last_code"][0]["args"][1][0], interpreter)
+                        res[0](model["walls"], int(res[1][0]))
+                        session["last_code"][0]["args"][0] = str(int(session["last_code"][0]["args"][0])-1)
+                        if session["last_code"][0]["args"][0] == "0":
+                            session["last_code"][0] = session["last_code"][0][1:]
+                if session["last_code"][0]["op_code"] != "repeat":
+                    session["last_code"] = session["last_code"][1:]
+        else:
+            data_match[f"p{session['bot']}_done"] = True
         
         # SAUVEGARDE DES CHANGEMENTS FAIT PAR LA FONCTION
         data_match[f"pos_p{session['bot']}"] = [interpreter.memory[pos_x], interpreter.memory[pos_y]]
@@ -202,7 +242,6 @@ def combat():
 
         # ATTENTE DE LEXECUTION DE L'AUTRE JOUEUR
         while True:
-            print(session["bot"]+"c")
             with open(join(app.config['DATA_DIR'],f"matches/running/{session['match']}.json"), "r") as check_dispo:
                 try:
                     if load(check_dispo)[f"p{ennemy}_finit"]:
@@ -232,7 +271,6 @@ def combat():
             has_shield = False
             for s in data_match["shields"]:
                 if [x, y] == s[0]:
-                    print([x,y])
                     has_shield = True
 
             if [x, y] in model['walls']:
@@ -264,9 +302,9 @@ def combat():
         data_match = load(match_file)
 
     if data_match[f"p1_done"] and data_match[f"p2_done"]: # SI ON A DEJA TOURNE TOUT LE CODE
-        if data_match["p1_points"] > data_match["p2_points"]:
+        if data_match["p2_points"] > data_match["p1_points"]:
             data_match["winner"] = data_match["p1"]
-        elif data_match["p2_points"] > data_match["p1_points"]:
+        elif data_match["p1_points"] > data_match["p2_points"]:
             data_match["winner"] = data_match["p2"]
         else:
             data_match["winner"] = "EGALITE"
@@ -323,7 +361,6 @@ def next_turn():
     with open(join(app.config['DATA_DIR'],f"matches/running/{session['match']}.json"), "r") as match_file:
         data_match = load(match_file)
     while True:
-        print(session["bot"]+"a")
         data_match[f"p{session['bot']}_submitted"] = True
         with open(join(app.config['DATA_DIR'],f"matches/running/{session['match']}.json"), "w") as match_file:
             dump(data_match, match_file)
@@ -336,7 +373,6 @@ def next_turn():
     else:
         session['last_code'] = request.form["code"]
     while True:
-        print(session["bot"]+"b")
         with open(join(app.config['DATA_DIR'],f"matches/running/{session['match']}.json"), "r") as match_file:
             try:
                 if load(match_file)[f"p{ennemy}_submitted"]:
