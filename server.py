@@ -1,6 +1,5 @@
 from flask import Flask, render_template, request, session, redirect, jsonify
 from os.path import join, dirname, realpath
-from os import remove
 from sqlite3 import connect
 from uuid import uuid4
 from json import load, dump, decoder
@@ -129,7 +128,7 @@ def queue():
             with open(join(app.config['DATA_DIR'],"matches/queue.json"), "w") as file:     
                 dump(data, file)   
             with open(join(app.config['DATA_DIR'],f"matches/running/{session['match']}.json"), "w") as file_match:
-                dump({"p1":session["uuid"],"p2":other_player, "pos_p1": [0, 0], "pos_p2": [15, 10], "coins": [], "p1_finit":False, "p2_finit":False, "p1_submitted":False, "p2_submitted":False, "shields":[], "winner":None, "p1_points":0, "p2_points":0}, file_match)        
+                dump({"p1":session["uuid"],"p2":other_player, "pos_p1": [0, 0], "pos_p2": [15, 10], "coins": [], "p1_finit":False, "p2_finit":False, "p1_submitted":False, "p2_submitted":False, "shields":[], "winner":None, "p1_points":0, "p2_points":0, "p1_done":False, "p2_done":False}, file_match)        
             return redirect("/combat")
     else:
         return redirect("/")
@@ -158,8 +157,9 @@ def combat():
         
         # ON CREE L'INTERPRETEUR
         interpreter = EdaExecutor(data_match[f"pos_p{session['bot']}"][0], data_match[f"pos_p{session['bot']}"][1], [])
-        if type(session["last_code"]) == str:
-            session["last_code"] = compileur(lexxer(session['last_code']), interpreter) # A CHANGER
+        if isinstance(session["last_code"], str) :
+            
+            session["last_code"] = compileur(lexxer(session['last_code']), interpreter)
 
         #CHECK SI EN SHIELD
         in_shield = False
@@ -181,9 +181,10 @@ def combat():
                 data_match["shields"].pop(index)
 
         else: # SI NON
+            print(session["last_code"])
             session["last_code"][0][0](model["walls"], int(session["last_code"][0][1][0]))
             session["last_code"].pop(0)
-            if len(session["lastçcode"]) == 0:
+            if len(session["last_code"]) == 0:
                 data_match[f"p{session['bot']}_done"] = True
         
         # SAUVEGARDE DES CHANGEMENTS FAIT PAR LA FONCTION
@@ -194,12 +195,13 @@ def combat():
         if data_match[f"pos_p{session['bot']}"] in data_match["coins"]:
             data_match[f"p{session['bot']}_points"] += 1
             data_match["coins"].remove(data_match[f"pos_p{session['bot']}"])
+        data_match[f"p{session['bot']}_finit"] = True
         with open(join(app.config['DATA_DIR'],f"matches/running/{session['match']}.json"), "w") as setdispo:
             dump(data_match, setdispo)
 
         # ATTENTE DE LEXECUTION DE L'AUTRE JOUEUR
-        data_match[f"p{session['bot']}_finit"] = True
         while True:
+            print(session["bot"]+"c")
             with open(join(app.config['DATA_DIR'],f"matches/running/{session['match']}.json"), "r") as check_dispo:
                 try:
                     if load(check_dispo)[f"p{ennemy}_finit"]:
@@ -274,29 +276,28 @@ def combat():
     # SI ON A UN GAGNANT, ON ARRETE
     if data_match["winner"] != None:
         return redirect("/result_game")
-    return render_template('combat.html', map=map_str, bot=session["bot"]) # AJOUT DUNE VARIABLE PERMETTANT DEXECUTER DU JAVASCRIPT SI ON EXECUTE CODE
+    return render_template('combat.html', map=map_str, bot=session["bot"], has_to_reload=session["last_code"] != None) # AJOUT DUNE VARIABLE PERMETTANT DEXECUTER DU JAVASCRIPT SI ON EXECUTE CODE
 
 @app.route("/result_game")
 def result_game():
     con = connect(join(app.config['DATA_DIR'],'database/compte.db'))
     cur = con.cursor()
     match = session["match"]
-
-    # DEPLACEMENT DU FICHIER JSON
+    
     with open(join(app.config['DATA_DIR'],f"matches/running/{match}.json"), "r") as file:
         data = load(file)
+
+    # DEPLACEMENT DU FICHIER JSON
     with open(join(app.config['DATA_DIR'],f"matches/logs/{match}.json"), "w") as file_w:
         dump(data, file_w)
-    remove(join(app.config['DATA_DIR'],f"matches/running/{match}.json"))
-
     # AJOUT DES STATISTIQUES (+1 VICTOIRE)
     elo = cur.execute("SELECT elo FROM stats where uuid=?;",(session['uuid'], )).fetchone()[0]
     if data["winner"] == session['uuid']:
         win = cur.execute("SELECT win FROM stats where uuid=?;",(session['uuid'], )).fetchone()[0] + 1
-        cur.execute("UPDATE stats SET win=? AND elo=? WHERE uuid=?;",(win, elo+15, session['uuid'],)).fetchone()[0]
+        cur.execute("UPDATE stats SET win=? AND elo=? WHERE uuid=?;",(win, elo+15, session['uuid'],))
         victoire = True
     else:
-        cur.execute("UPDATE stats SET elo=? WHERE uuid=?;",( elo-15, session['uuid'], )).fetchone()[0]
+        cur.execute("UPDATE stats SET elo=? WHERE uuid=?;",( elo-15, session['uuid'], ))
         victoire = False
     con.commit()
     return render_template('result_game.html', victoire=victoire)
@@ -320,6 +321,7 @@ def next_turn():
     with open(join(app.config['DATA_DIR'],f"matches/running/{session['match']}.json"), "r") as match_file:
         data_match = load(match_file)
     while True:
+        print(session["bot"]+"a")
         data_match[f"p{session['bot']}_submitted"] = True
         with open(join(app.config['DATA_DIR'],f"matches/running/{session['match']}.json"), "w") as match_file:
             dump(data_match, match_file)
@@ -332,6 +334,7 @@ def next_turn():
     else:
         session['last_code'] = request.form["code"]
     while True:
+        print(session["bot"]+"b")
         with open(join(app.config['DATA_DIR'],f"matches/running/{session['match']}.json"), "r") as match_file:
             try:
                 if load(match_file)[f"p{ennemy}_submitted"]:
