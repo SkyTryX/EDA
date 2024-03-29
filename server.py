@@ -146,6 +146,7 @@ def leave_queue():
 
 @app.route("/combat")
 def combat():
+    print("TEST")
     # INITIALISATION
     ennemy = '1' if session['bot'] == '2' else '2'
     with open(join(app.config['DATA_DIR'],f"matches/running/{session['match']}.json"), "r") as match_file:
@@ -209,7 +210,6 @@ def combat():
                 except decoder.JSONDecodeError:
                     pass
             sleep(0.5)
-        
         # CHECK SI QUELQU'UN EST MORT DE SHIELD
         for s in data_match["shields"]:
             if data_match[f"pos_p{session['bot']}"] == [s[0][1],s[0][0]] and ennemy == s[2]:
@@ -276,7 +276,7 @@ def combat():
     # SI ON A UN GAGNANT, ON ARRETE
     if data_match["winner"] != None:
         return redirect("/result_game")
-    return render_template('combat.html', map=map_str, bot=session["bot"], has_to_reload=session["last_code"] != None) # AJOUT DUNE VARIABLE PERMETTANT DEXECUTER DU JAVASCRIPT SI ON EXECUTE CODE
+    return render_template('combat.html', map=map_str, bot=session["bot"], has_to_reload=session["last_code"] != None)
 
 @app.route("/result_game")
 def result_game():
