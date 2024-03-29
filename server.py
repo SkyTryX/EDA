@@ -269,7 +269,7 @@ def combat():
         elif data_match["p2_points"] > data_match["p1_points"]:
             data_match["winner"] = data_match["p2"]
         else:
-            ... # CAS EGALITE
+            data_match["winner"] = "EGALITE"
         with open(join(app.config['DATA_DIR'],f"matches/running/{session['match']}.json"), "w") as match_file:
             dump(data_match, match_file)
 
@@ -296,6 +296,8 @@ def result_game():
         win = cur.execute("SELECT win FROM stats where uuid=?;",(session['uuid'], )).fetchone()[0] + 1
         cur.execute("UPDATE stats SET win=? AND elo=? WHERE uuid=?;",(win, elo+15, session['uuid'],))
         victoire = True
+    elif data["winner"] == "EGALITE":
+        victoire = None
     else:
         cur.execute("UPDATE stats SET elo=? WHERE uuid=?;",( elo-15, session['uuid'], ))
         victoire = False
